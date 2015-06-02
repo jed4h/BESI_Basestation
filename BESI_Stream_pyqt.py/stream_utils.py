@@ -3,6 +3,7 @@ import socket
 import sys
 import pyqtgraph as pg
 from datetime import datetime
+import os
 
 # runs update functions for each sensor used
 # update functions check if data is ready and update the plot ifit is
@@ -50,6 +51,7 @@ def parse_accel(raw_data):
     # index part of each packet we are processing
     index = 0
     data = []
+    #if len(raw_data.split(",")) == 5:
     for element in raw_data.split(","):
         # if data cannot be cast as an int, it is something other than data
         try:
@@ -72,7 +74,15 @@ def parse_accel(raw_data):
             else:
                 data.append(int(element))
                 index = 0
+                    
+    #else:
+        #data.append(None)
      
+    if index != 0:
+        data.append(None)
+        data.append(None)
+        data.append(None)
+        
     return data
 
 # parses values for timestamp, degree C, degree F from string in csv format
@@ -138,14 +148,20 @@ def connectRecv(port):
 # check if accelerometer data is ready
 def update_accel(connection, outFile, t, x, y, z):
     # each accelerometer packet is 22 bytes long
-    # check if two packets are rady
+    # check if two packets are ready
     data = recv_nonblocking(connection, 44)
     if data != None:
+        # if the file is empty, this is the first data received and we need to write the start time
+        outFile.seek(0,2)
+        if (outFile.tell() == 0):
+            outFile.write(str(datetime.now()) + '\n')
+        
         # save received data
         outFile.write(data)
         split_data = parse_accel(data)
         # add data to arrays
-        if split_data[0] != None:
+        #if (split_data[0] != None) and (len(split_data) == 5):
+        if (split_data[0] != None):
             append_fixed_size(t, split_data[0], 200)
             append_fixed_size(x, split_data[1], 200)
             append_fixed_size(y, split_data[2], 200)
@@ -155,7 +171,7 @@ def update_accel(connection, outFile, t, x, y, z):
         try:
             #check for all 0s, which signals a lost connection
             if t[-1] == 0 and x[-1] == 0 and y[-1] == 0 and z[-1] == 0:
-                # write time so that the duration of connection loss can be detirmined
+                # write time so that the duration of connection loss can be determined
                 outFile.write(str(datetime.now()) + '\n')
         except:
             pass      
@@ -166,6 +182,11 @@ def update_light(connection, outFile, light):
     # each packet is 25 bytes
     data = recv_nonblocking(connection, 25)
     if data != None:
+        # if the file is empty, this is the first data received and we need to write the start time
+        outFile.seek(0,2)
+        if (outFile.tell() == 0):
+            outFile.write(str(datetime.now()) + '\n')
+            
         outFile.write(data)
         split_data = parse_light(data)
         if split_data != None:
@@ -177,6 +198,11 @@ def update_sound(connection, outFile, sound, sound_sum):
     # each packet is 23 bytes
     data = recv_nonblocking(connection, 23)
     if data != None:
+        # if the file is empty, this is the first data received and we need to write the start time
+        outFile.seek(0,2)
+        if (outFile.tell() == 0):
+            outFile.write(str(datetime.now()) + '\n')
+            
         outFile.write(data)
         split_data = parse_sound(data)
         if split_data != None:
@@ -196,6 +222,11 @@ def update_temp(connection, outFile, temp):
     # size of a temperature data packet is 20 bytes
     data = recv_nonblocking(connection, 20)
     if data != None:
+        # if the file is empty, this is the first data received and we need to write the start time
+        outFile.seek(0,2)
+        if (outFile.tell() == 0):
+            outFile.write(str(datetime.now()) + '\n')
+            
         outFile.write(data)
         split_data = parse_temp(data)
         if split_data != None:

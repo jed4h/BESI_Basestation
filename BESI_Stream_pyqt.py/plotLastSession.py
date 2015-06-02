@@ -19,7 +19,7 @@ rawTempFile = open("temp" + "{}".format(basePort + 3), "r")
 
 # processing is mostly creating timestamps relative to he start of the data collection
 # these functions produce files name sensor ID + date
-processAccel(rawAccelFile)
+t = processAccel(rawAccelFile)
 processLight(rawLightFile)
 processSound(rawNoiseFile)
 processTemp(rawTempFile)
@@ -30,10 +30,10 @@ rawNoiseFile.close()
 rawTempFile.close()
 
 # open processed data files
-accelProcFile = open("Accelerometer2015-05-29", "r")
-lightProcFile = open("Ambient Light2015-05-29", "r")
-noiseProcFile = open("Ambient Noise2015-05-29", "r")
-tempProcFile = open("Temperature2015-05-29", "r")
+accelProcFile = open("Accelerometer2015-06-01", "r")
+lightProcFile = open("Ambient Light2015-06-01", "r")
+noiseProcFile = open("Ambient Noise2015-06-01", "r")
+tempProcFile = open("Temperature2015-06-01", "r")
 
 # create time series of data from each file
 t_data, x_data, y_data, z_data = plotAccel(accelProcFile)
@@ -56,7 +56,7 @@ pg.setConfigOptions(antialias=True)
 p1 = win.addPlot(title="Accelerometer Data")
 p1.setLabel('left', "Uncalibrated Accelerometer", units='')
 p1.setLabel('bottom', "Time", units='s')
-p1.plot(t_data, calibrateMagnitude(x_data, y_data, z_data), pen=(255,0,0), name="Accel curve")
+p1.plot(t_data, calibrateMagnitude(t, x_data, y_data, z_data), pen=(255,0,0), name="Accel curve")
 #p1.plot(t_data, x_data, pen=(0,255,0), name="X curve")
 #p1.plot(t_data, y_data, pen=(0,0,255), name="Y curve")
 #p1.plot(t_data, z_data, pen=(255,0,255), name="Z curve")

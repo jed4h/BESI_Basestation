@@ -23,10 +23,11 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
     tempFile = open("temp{}".format(PORT + 3), "w")
     
     # write start time
-    faccel.write(str(datetime.now()) + '\n')
-    flight.write(str(datetime.now()) + '\n')
-    soundFile.write(str(datetime.now()) + '\n')
-    tempFile.write(str(datetime.now()) + '\n')
+    # Now done in stream when data is first received
+    #faccel.write(str(datetime.now()) + '\n')
+    #flight.write(str(datetime.now()) + '\n')
+    #soundFile.write(str(datetime.now()) + '\n')
+    #tempFile.write(str(datetime.now()) + '\n')
     
     # establish socket connections for each sensor used
     if USE_ACCEL:
@@ -65,7 +66,7 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
     # set up a timer to run update() every 5 ms   
     timer1 = QtCore.QTimer()
     timer1.timeout.connect(update)
-    timer1.start(3)
+    timer1.start(5)
     
     # keeps the program running while the plot window is open
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):

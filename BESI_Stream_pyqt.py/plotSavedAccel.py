@@ -7,7 +7,7 @@ import pyqtgraph as pg
 import math
 
 # computes the calibrated accelerometer magnitude from raw measurements for each axis
-def calibrateMagnitude(x, y, z):
+def calibrateMagnitude(t, x, y, z):
     # TODO: Think of a better way to store calib info
     # Assumes alignment is:    1 0 0
     #                          0 1 0
@@ -19,29 +19,51 @@ def calibrateMagnitude(x, y, z):
     ySens = 83.0
     zSens = 83.0
     
+    # these variables are used to account for corrupted packets
+    # 
+    last_valid = False
+    t_last = 0
+    invalid_count = 0
+    
     x_calib = []
     y_calib = []
     z_calib = []
     accelMag = []
     
+    remove_corrupted = True
+    
     # a reading of 0 indicates no connection
     for i in range(len(x)):
-        if (x[i] != 0):
-            x_calib.append((x[i] - xOff)/xSens)
-        else:
-            x_calib.append(0)
+        # check if the last timestamp is valid and if the current is the last plus 640 (or + 1280 if the shimmer misses a sample)
+        if ((not last_valid) or (int(t[i]) == int(t_last) + 640) or (int(t[i]) == int(t_last) + 1280) or (int(t[i]) == int(t_last) + 640 - 65536) or (int(t[i]) == int(t_last) + 1280 - 65536) or not remove_corrupted):
+            last_valid = True
+            t_last = t[i]
+            if (x[i] != 0):
+                x_calib.append((x[i] - xOff)/xSens)
+            else:
+                x_calib.append(0)
+                
+            if (y[i] != 0):
+                y_calib.append((y[i] - yOff)/ySens)
+            else:
+                y_calib.append(0)
+                
+            if (z[i] != 0):
+                z_calib.append((z[i] - zOff)/zSens)
+            else:
+                z_calib.append(0)
+                
+            accelMag.append(math.sqrt(x_calib[-1]**2 + y_calib[-1]**2 + z_calib[-1]**2))
             
-        if (y[i] != 0):
-            y_calib.append((y[i] - yOff)/ySens)
         else:
-            y_calib.append(0)
-            
-        if (z[i] != 0):
-            z_calib.append((z[i] - zOff)/zSens)
-        else:
-            z_calib.append(0)
-            
-        accelMag.append(math.sqrt(x_calib[-1]**2 + y_calib[-1]**2 + z_calib[-1]**2))
+            # currupted packet - dignore 16 readings and write 0s instead
+            accelMag.append(0)
+            invalid_count = invalid_count + 1
+            print t_last
+            print t[i]
+            if invalid_count == 16:
+                invalid_count = 0
+                last_valid = False
         
     return accelMag
     
@@ -56,11 +78,6 @@ def plotAccel(inFile):
     x = 0
     y = 0
     z = 0
-    
-    
-    
-   
-    
     
     # after a disconnect the next line is a datetime string
     lineIsDate = False
