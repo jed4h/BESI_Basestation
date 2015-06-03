@@ -9,7 +9,7 @@ from plotSavedNoise import plotNoise
 from plotSavedTemp import plotTemp, lowPassFilter
 
 #raw data files are named based on the socket port used to get the data from the BBB
-basePort = 10003
+basePort = PORT1
 
 
 rawAccelFile = open("accel" + "{}".format(basePort), "r")
@@ -19,10 +19,12 @@ rawTempFile = open("temp" + "{}".format(basePort + 3), "r")
 
 # processing is mostly creating timestamps relative to he start of the data collection
 # these functions produce files name sensor ID + date
-t = processAccel(rawAccelFile)
-processLight(rawLightFile)
-processSound(rawNoiseFile)
-processTemp(rawTempFile)
+fname1, t = processAccel(rawAccelFile)
+fname2 = processLight(rawLightFile)
+fname3 = processSound(rawNoiseFile)
+fname4 = processTemp(rawTempFile)
+
+print fname3
 
 rawAccelFile.close()
 rawLightFile.close()
@@ -30,10 +32,18 @@ rawNoiseFile.close()
 rawTempFile.close()
 
 # open processed data files
-accelProcFile = open("Accelerometer2015-06-01", "r")
-lightProcFile = open("Ambient Light2015-06-01", "r")
-noiseProcFile = open("Ambient Noise2015-06-01", "r")
-tempProcFile = open("Temperature2015-06-01", "r")
+accelProcFile = open(fname1, "r")
+lightProcFile = open(fname2, "r")
+noiseProcFile = open(fname3, "r")
+tempProcFile = open(fname4, "r")
+
+"""
+# open processed data files
+accelProcFile = open("Accelerometer2015-06-03", "r")
+lightProcFile = open("Ambient Light2015-06-03", "r")
+noiseProcFile = open("Ambient Noise2015-06-03", "r")
+tempProcFile = open("Temperature2015-06-03", "r")
+"""
 
 # create time series of data from each file
 t_data, x_data, y_data, z_data = plotAccel(accelProcFile)
@@ -86,6 +96,12 @@ print "Accel Duration: {}".format(t_data[-1])
 print "Light Duration: {}".format(tlight_data[-1])
 print "Noise Duration: {}".format(tnoise_data[-1])
 print "Temp Duration: {}".format(tTemp_data[-1])
+
+accelProcFile.close()
+lightProcFile.close()
+noiseProcFile.close()
+tempProcFile.close()
+
 
 ## Start Qt event loop unless running in interactive mode or using pyside.
 if __name__ == '__main__':

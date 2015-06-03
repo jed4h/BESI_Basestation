@@ -3,7 +3,8 @@ import socket
 import sys
 import pyqtgraph as pg
 from datetime import datetime
-import os
+from parameters import TICKS_PER_SAMPLE
+from parameters import *
 
 # runs update functions for each sensor used
 # update functions check if data is ready and update the plot ifit is
@@ -48,7 +49,7 @@ def append_fixed_size(array, new_data, max_size):
             
 # parses values for timestamp, x-axis, y-axis, and z-axis from string in csv format            
 def parse_accel(raw_data):
-    # index part of each packet we are processing
+    # index not needed for this code - maybe change?
     index = 0
     data = []
     #if len(raw_data.split(",")) == 5:
@@ -63,7 +64,8 @@ def parse_accel(raw_data):
             if index == 0:
                 # timestamp is the number of ticks of a 32768 Hz clock
                 # sampling at 51.2 Hz means 640 ticks per sample
-                data.append(int(element)/640)
+                # sampling at 102.4 Hz means 320 ticks per sample
+                data.append(int(element)/TICKS_PER_SAMPLE)
                 index = 1             
             elif index == 1:
                 data.append(int(element))
@@ -148,8 +150,9 @@ def connectRecv(port):
 # check if accelerometer data is ready
 def update_accel(connection, outFile, t, x, y, z):
     # each accelerometer packet is 22 bytes long
-    # check if two packets are ready
-    data = recv_nonblocking(connection, 44)
+    # check if four packets are ready
+    
+    data = recv_nonblocking(connection, 4 * ACCEL_PACKET_SIZE)
     if data != None:
         # if the file is empty, this is the first data received and we need to write the start time
         outFile.seek(0,2)
@@ -160,7 +163,7 @@ def update_accel(connection, outFile, t, x, y, z):
         outFile.write(data)
         split_data = parse_accel(data)
         # add data to arrays
-        #if (split_data[0] != None) and (len(split_data) == 5):
+        # this only plots the first packet from every group received, ehich downsamples by 4
         if (split_data[0] != None):
             append_fixed_size(t, split_data[0], 200)
             append_fixed_size(x, split_data[1], 200)
@@ -180,7 +183,7 @@ def update_accel(connection, outFile, t, x, y, z):
 # check if light data is ready
 def update_light(connection, outFile, light):
     # each packet is 25 bytes
-    data = recv_nonblocking(connection, 25)
+    data = recv_nonblocking(connection, LIGHT_PACKET_SIZE)
     if data != None:
         # if the file is empty, this is the first data received and we need to write the start time
         outFile.seek(0,2)
@@ -196,7 +199,7 @@ def update_light(connection, outFile, light):
 # check if sound data is ready    
 def update_sound(connection, outFile, sound, sound_sum):
     # each packet is 23 bytes
-    data = recv_nonblocking(connection, 23)
+    data = recv_nonblocking(connection, MIC_PACKET_SIZE)
     if data != None:
         # if the file is empty, this is the first data received and we need to write the start time
         outFile.seek(0,2)
@@ -220,7 +223,7 @@ def update_sound(connection, outFile, sound, sound_sum):
 # check if temperature data is ready    
 def update_temp(connection, outFile, temp):
     # size of a temperature data packet is 20 bytes
-    data = recv_nonblocking(connection, 20)
+    data = recv_nonblocking(connection, TEMP_PACKET_SIZE)
     if data != None:
         # if the file is empty, this is the first data received and we need to write the start time
         outFile.seek(0,2)

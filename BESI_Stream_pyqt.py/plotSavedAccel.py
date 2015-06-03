@@ -5,22 +5,12 @@ import datetime
 from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 import math
+from parameters import *
 
 # computes the calibrated accelerometer magnitude from raw measurements for each axis
 def calibrateMagnitude(t, x, y, z):
-    # TODO: Think of a better way to store calib info
-    # Assumes alignment is:    1 0 0
-    #                          0 1 0
-    #                          0 0 1
-    xOff = 2086
-    yOff = 2048
-    zOff = 2050
-    xSens = 84.0
-    ySens = 83.0
-    zSens = 83.0
     
     # these variables are used to account for corrupted packets
-    # 
     last_valid = False
     t_last = 0
     invalid_count = 0
@@ -35,7 +25,7 @@ def calibrateMagnitude(t, x, y, z):
     # a reading of 0 indicates no connection
     for i in range(len(x)):
         # check if the last timestamp is valid and if the current is the last plus 640 (or + 1280 if the shimmer misses a sample)
-        if ((not last_valid) or (int(t[i]) == int(t_last) + 640) or (int(t[i]) == int(t_last) + 1280) or (int(t[i]) == int(t_last) + 640 - 65536) or (int(t[i]) == int(t_last) + 1280 - 65536) or not remove_corrupted):
+        if ((not last_valid) or (int(t[i]) == int(t_last) + TICKS_PER_SAMPLE) or (int(t[i]) == int(t_last) + 2 * TICKS_PER_SAMPLE) or (int(t[i]) == int(t_last) + TICKS_PER_SAMPLE - SHIMMER_TICKS) or (int(t[i]) == int(t_last) + 2 * TICKS_PER_SAMPLE - SHIMMER_TICKS) or not remove_corrupted):
             last_valid = True
             t_last = t[i]
             if (x[i] != 0):
@@ -61,7 +51,7 @@ def calibrateMagnitude(t, x, y, z):
             invalid_count = invalid_count + 1
             print t_last
             print t[i]
-            if invalid_count == 16:
+            if invalid_count == CORRUPTED_COUNT:
                 invalid_count = 0
                 last_valid = False
         

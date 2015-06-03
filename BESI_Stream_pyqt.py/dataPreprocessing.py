@@ -1,5 +1,6 @@
 #  functions to process time stamps from data received from the BBB
 import datetime
+from parameters import *
 
 # processes timestamps from a file of raw temp. data
 # the raw timestamp is the time since the last sample
@@ -8,7 +9,8 @@ def processTemp(tempFile):
     #first line is the start date/time of the data collection
     startDate =  tempFile.readline()
     dt = datetime.datetime.strptime(startDate.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
-    outputFile = open("temperature{}".format(dt.date()), "w")
+    fname = "temperature{0}_{1}-{2:02}".format(dt.date(), dt.time().hour, dt.time().minute)
+    outputFile = open(fname, "w")
     
     outputFile.write(startDate)
     outputFile.write("Timestamp,Degree C,Degree F\n")
@@ -23,13 +25,17 @@ def processTemp(tempFile):
             # add timeDelta to the timestamp of the last sample to get the timestamp of the current sample
             #lastTime = lastTime + float(timeDelta)
             outputFile.write("{0},{1},{2}\n".format(float(lastTime), tempDataC, tempDataF))
+            
+    return fname
+
  
 # raw sound data does not require any processing
 # this function simply copies data and removes leading 0s 
 def processSound(soundFile):
     startDate =  soundFile.readline()
     dt = datetime.datetime.strptime(startDate.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
-    outputFile = open("Ambient Noise{}".format(dt.date()), "w")
+    fname = "Ambient Noise{0}_{1}-{2:02}".format(dt.date(), dt.time().hour, dt.time().minute)
+    outputFile = open(fname, "w")
     
     outputFile.write(startDate)
     outputFile.write("Timestamp,Noise Level\n")
@@ -43,13 +49,16 @@ def processSound(soundFile):
         else:
             outputFile.write("{0:.2f},{1:.2f}\n".format(float(lastTime), float(noiseLevel)))
         
+    return fname
+
 
 # raw light data does not require any processing
 # this function simply copies data and removes leading 0s         
 def processLight(lightFile):
     startDate =  lightFile.readline()
     dt = datetime.datetime.strptime(startDate.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
-    outputFile = open("Ambient Light{}".format(dt.date()), "w")
+    fname = "Ambient Light{0}_{1}-{2:02}".format(dt.date(), dt.time().hour, dt.time().minute)
+    outputFile = open(fname, "w")
     
     outputFile.write(startDate)
     outputFile.write("Timestamp,Light Level\n")
@@ -62,6 +71,8 @@ def processLight(lightFile):
             pass
         else:
             outputFile.write("{0:.2f},{1:.2f}\n".format(float(lastTime), float(lightLevel)))
+            
+    return fname
        
 
 # processes timestamps from a file of raw accel. data
@@ -71,10 +82,11 @@ def processLight(lightFile):
 def processAccel(accelFile):
     t = []
     lastTime = 0
-    tick = 640.0/32768 # conversion between Shimmer assumes 51.2 Hz sampling rate
+    lastRelTime = -10000
     startDate =  accelFile.readline()
     dt = datetime.datetime.strptime(startDate.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
-    outputFile = open("Accelerometer{}".format(dt.date()), "w")
+    fname = "Accelerometer{0}_{1}-{2:02}".format(dt.date(), dt.time().hour, dt.time().minute)
+    outputFile = open(fname, "w")
     
     outputFile.write(startDate)
     outputFile.write("Timestamp,X-Axis,Y-Axis,Z-Axis\n")
@@ -93,9 +105,14 @@ def processAccel(accelFile):
                 # time is reset for each disconnect event
                 lastTime = 0 
         else:
-            # for each valid data entry, the time stamp is incremented by the between semples
-            lastTime = lastTime + tick
+            # for each valid data entry, the time stamp is incremented by the time between samples
+            # check for a single missed sample
+            if (int(relTime) == lastRelTime + 2 * TICKS_PER_SAMPLE) or (int(relTime) == lastRelTime + 2 * TICKS_PER_SAMPLE - SHIMMER_TICKS):
+                lastTime = lastTime + 2 * TICK_TIME
+            else:
+                lastTime = lastTime + TICK_TIME
             t.append(relTime)
+            lastRelTime = int(relTime)
             outputFile.write("{0:.2f},{1},{2},{3}\n".format(float(lastTime), xAxis, yAxis, zAxis))
             
-    return t
+    return fname, t
