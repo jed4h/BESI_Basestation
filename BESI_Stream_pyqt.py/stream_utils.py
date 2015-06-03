@@ -3,7 +3,6 @@ import socket
 import sys
 import pyqtgraph as pg
 from datetime import datetime
-from parameters import TICKS_PER_SAMPLE
 from parameters import *
 
 # runs update functions for each sensor used
@@ -105,7 +104,7 @@ def parse_temp(raw_data):
 def parse_sound(raw_data):
     split_data = raw_data.split(",")
     try:
-        # if noise level cannot be case to a float, the line is not data
+        # if noise level cannot be cast to a float, the line is not data
         data = float(split_data[1])
     except:
         data = None
@@ -199,7 +198,7 @@ def update_light(connection, outFile, light):
 # check if sound data is ready    
 def update_sound(connection, outFile, sound, sound_sum):
     # each packet is 23 bytes
-    data = recv_nonblocking(connection, MIC_PACKET_SIZE)
+    data = recv_nonblocking(connection, 4 * MIC_PACKET_SIZE)
     if data != None:
         # if the file is empty, this is the first data received and we need to write the start time
         outFile.seek(0,2)
@@ -209,7 +208,7 @@ def update_sound(connection, outFile, sound, sound_sum):
         outFile.write(data)
         split_data = parse_sound(data)
         if split_data != None:
-            # noise data is plotted over 1000 semples = 10 seconds
+            # noise data is plotted over 1000 samples = 10 seconds
             append_fixed_size(sound, split_data, 1000)
             
             # moving average - no longer used
