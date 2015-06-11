@@ -7,15 +7,20 @@ from plotSavedAccel import plotAccel, calibrateMagnitude
 from plotSavedLight import plotLight
 from plotSavedNoise import plotNoise
 from plotSavedTemp import plotTemp, lowPassFilter
+import os
 
 #raw data files are named based on the socket port used to get the data from the BBB
 basePort = PORT1
 
+# use a separate folder to save data files
+if not os.path.exists("data"):
+    os.mkdir("data")
 
-rawAccelFile = open("accel" + "{}".format(basePort), "r")
-rawLightFile = open("light" + "{}".format(basePort + 1), "r")
-rawNoiseFile = open("sound" + "{}".format(basePort + 2), "r")
-rawTempFile = open("temp" + "{}".format(basePort + 3), "r")
+
+rawAccelFile = open("data/accel" + "{}".format(basePort), "r")
+rawLightFile = open("data/light" + "{}".format(basePort + 1), "r")
+rawNoiseFile = open("data/sound" + "{}".format(basePort + 2), "r")
+rawTempFile = open("data/temp" + "{}".format(basePort + 3), "r")
 
 # processing is mostly creating timestamps relative to he start of the data collection
 # these functions produce files name sensor ID + date
@@ -23,8 +28,6 @@ fname1, t = processAccel(rawAccelFile)
 fname2 = processLight(rawLightFile)
 fname3 = processSound(rawNoiseFile)
 fname4 = processTemp(rawTempFile)
-
-print fname3
 
 rawAccelFile.close()
 rawLightFile.close()
@@ -39,10 +42,10 @@ tempProcFile = open(fname4, "r")
 
 """
 # open processed data files
-accelProcFile = open("Accelerometer2015-06-03", "r")
-lightProcFile = open("Ambient Light2015-06-03", "r")
-noiseProcFile = open("Ambient Noise2015-06-03", "r")
-tempProcFile = open("Temperature2015-06-03", "r")
+accelProcFile = open("data/Accelerometer2015-05-28", "r")
+lightProcFile = open("data/Ambient Light2015-06-03", "r")
+noiseProcFile = open("data/Ambient Noise2015-06-03", "r")
+tempProcFile = open("data/Temperature2015-06-03", "r")
 """
 
 # create time series of data from each file

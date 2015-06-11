@@ -17,10 +17,10 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
     sound_sum = []
    
     # temporary files to hold the raw data for each sensor
-    faccel = open("accel{}".format(PORT), "w")
-    flight = open("light{}".format(PORT + 1), "w")
-    soundFile = open("sound{}".format(PORT + 2), "w")
-    tempFile = open("temp{}".format(PORT + 3), "w")
+    faccel = open("data/accel{}".format(PORT), "w")
+    flight = open("data/light{}".format(PORT + 1), "w")
+    soundFile = open("data/sound{}".format(PORT + 2), "w")
+    tempFile = open("data/temp{}".format(PORT + 3), "w")
     
     # write start time
     # Now done in stream when data is first received

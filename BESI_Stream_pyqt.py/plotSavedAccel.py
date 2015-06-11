@@ -20,14 +20,14 @@ def calibrateMagnitude(t, x, y, z):
     z_calib = []
     accelMag = []
     
-    remove_corrupted = True
+    remove_corrupted = False
     
     # a reading of 0 indicates no connection
     for i in range(len(x)):
         # check if the last timestamp is valid and if the current is the last plus 640 (or + 1280 if the shimmer misses a sample)
-        if ((not last_valid) or (int(t[i]) == int(t_last) + TICKS_PER_SAMPLE) or (int(t[i]) == int(t_last) + 2 * TICKS_PER_SAMPLE) or (int(t[i]) == int(t_last) + TICKS_PER_SAMPLE - SHIMMER_TICKS) or (int(t[i]) == int(t_last) + 2 * TICKS_PER_SAMPLE - SHIMMER_TICKS) or not remove_corrupted):
+        if (not remove_corrupted or (not last_valid) or (int(t[i]) == int(t_last) + TICKS_PER_SAMPLE) or (int(t[i]) == int(t_last) + 2 * TICKS_PER_SAMPLE) or (int(t[i]) == int(t_last) + TICKS_PER_SAMPLE - SHIMMER_TICKS) or (int(t[i]) == int(t_last) + 2 * TICKS_PER_SAMPLE - SHIMMER_TICKS)):
             last_valid = True
-            t_last = t[i]
+            #t_last = t[i]
             if (x[i] != 0):
                 x_calib.append((x[i] - xOff)/xSens)
             else:
@@ -76,7 +76,7 @@ def plotAccel(inFile):
     startDate =  inFile.readline()
     dt = datetime.datetime.strptime(startDate.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
     
-    outputFile = open("Accelerometer{}_V2".format(dt.date()), "w")
+    outputFile = open("data/Accelerometer{}_V2".format(dt.date()), "w")
     outputFile.write(startDate)
     
     # convert into seconds

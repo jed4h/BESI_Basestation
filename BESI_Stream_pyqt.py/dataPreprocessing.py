@@ -9,7 +9,7 @@ def processTemp(tempFile):
     #first line is the start date/time of the data collection
     startDate =  tempFile.readline()
     dt = datetime.datetime.strptime(startDate.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
-    fname = "temperature{0}_{1}-{2:02}".format(dt.date(), dt.time().hour, dt.time().minute)
+    fname = "data/temperature{0}_{1}-{2:02}".format(dt.date(), dt.time().hour, dt.time().minute)
     outputFile = open(fname, "w")
     
     outputFile.write(startDate)
@@ -34,7 +34,7 @@ def processTemp(tempFile):
 def processSound(soundFile):
     startDate =  soundFile.readline()
     dt = datetime.datetime.strptime(startDate.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
-    fname = "Ambient Noise{0}_{1}-{2:02}".format(dt.date(), dt.time().hour, dt.time().minute)
+    fname = "data/Ambient Noise{0}_{1}-{2:02}".format(dt.date(), dt.time().hour, dt.time().minute)
     outputFile = open(fname, "w")
     
     outputFile.write(startDate)
@@ -57,7 +57,7 @@ def processSound(soundFile):
 def processLight(lightFile):
     startDate =  lightFile.readline()
     dt = datetime.datetime.strptime(startDate.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
-    fname = "Ambient Light{0}_{1}-{2:02}".format(dt.date(), dt.time().hour, dt.time().minute)
+    fname = "data/Ambient Light{0}_{1}-{2:02}".format(dt.date(), dt.time().hour, dt.time().minute)
     outputFile = open(fname, "w")
     
     outputFile.write(startDate)
@@ -85,7 +85,7 @@ def processAccel(accelFile):
     lastRelTime = -10000
     startDate =  accelFile.readline()
     dt = datetime.datetime.strptime(startDate.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
-    fname = "Accelerometer{0}_{1}-{2:02}".format(dt.date(), dt.time().hour, dt.time().minute)
+    fname = "data/Accelerometer{0}_{1}-{2:02}".format(dt.date(), dt.time().hour, dt.time().minute)
     outputFile = open(fname, "w")
     
     outputFile.write(startDate)
@@ -97,11 +97,13 @@ def processAccel(accelFile):
             relTime, xAxis, yAxis, zAxis, nLine = data
         except: # line is a datetime object or an incomplete line
             try:
-                datetime.datetime.strptime(data.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
+                datetime.datetime.strptime(line.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
             except:
                 pass
             else:
+                # write datetime timestamp
                 outputFile.write(data[0])
+                #print "found a date"
                 # time is reset for each disconnect event
                 lastTime = 0 
         else:
