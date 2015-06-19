@@ -2,6 +2,8 @@
 from datetime import datetime
 from pyqtgraph.Qt import QtGui, QtCore
 from stream_utils import *
+from parameters import PLOT
+from BikeCadence import peakDetection
 
 
 # receives data from the BBB using a different socket for each sensor
@@ -47,21 +49,29 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
         connection3 = None
         connection4 = None
     
-    app = QtGui.QApplication([])
     
-    win, curves = init_plot()
+    app = QtGui.QApplication([])
+    if PLOT:
+        win, curves = init_plot()
+        
     
     
     # update is called every 5 ms and updates the data for each plot
     def update():
         plot_update_all(connection, connection2, connection3, connection4, faccel, flight, soundFile, tempFile, t, x, y ,z, light, sound, sound_sum, temp, USE_ACCEL, USE_LIGHT, USE_ADC)
-        curves[0].setData(x)
-        curves[1].setData(y)
-        curves[2].setData(z)
-        curves[3].setData(t)
-        curves[4].setData(light)
-        curves[5].setData(sound)
-        curves[7].setData(temp)
+        if PLOT:
+            curves[0].setData(x)
+            curves[1].setData(y)
+            curves[2].setData(z)
+            curves[3].setData(t)
+            curves[4].setData(light)
+            curves[5].setData(sound)
+            curves[7].setData(temp)
+            
+        if BIKE_CADENCE:
+            # intervals is meaningless because only raw timestamps are available
+            pedal_count, intervals = peakDetection(x[120:], y[120:], t[120:])
+            print pedal_count
     
     # set up a timer to run update() every 5 ms   
     timer1 = QtCore.QTimer()

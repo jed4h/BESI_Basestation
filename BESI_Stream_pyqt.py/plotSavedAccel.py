@@ -86,6 +86,7 @@ def plotAccel(inFile):
     
     # ignore line with metadata 
     outputFile.write(inFile.readline())
+    outputFile.write(inFile.readline())
     
     for line in inFile:
         if lineIsDate:

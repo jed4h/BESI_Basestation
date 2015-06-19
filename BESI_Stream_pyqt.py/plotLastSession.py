@@ -24,10 +24,10 @@ rawTempFile = open("data/temp" + "{}".format(basePort + 3), "r")
 
 # processing is mostly creating timestamps relative to he start of the data collection
 # these functions produce files name sensor ID + date
-fname1, t = processAccel(rawAccelFile)
-fname2 = processLight(rawLightFile)
-fname3 = processSound(rawNoiseFile)
-fname4 = processTemp(rawTempFile)
+fname1, t = processAccel(rawAccelFile, basePort)
+fname2 = processLight(rawLightFile, basePort)
+fname3 = processSound(rawNoiseFile, basePort)
+fname4 = processTemp(rawTempFile, basePort)
 
 rawAccelFile.close()
 rawLightFile.close()
@@ -42,7 +42,7 @@ tempProcFile = open(fname4, "r")
 
 """
 # open processed data files
-accelProcFile = open("data/Accelerometer2015-05-28", "r")
+accelProcFile = open("data/Accelerometer2015-06-12_11-13", "r")
 lightProcFile = open("data/Ambient Light2015-06-03", "r")
 noiseProcFile = open("data/Ambient Noise2015-06-03", "r")
 tempProcFile = open("data/Temperature2015-06-03", "r")
@@ -69,10 +69,13 @@ pg.setConfigOptions(antialias=True)
 p1 = win.addPlot(title="Accelerometer Data")
 p1.setLabel('left', "Uncalibrated Accelerometer", units='')
 p1.setLabel('bottom', "Time", units='s')
-p1.plot(t_data, calibrateMagnitude(t, x_data, y_data, z_data), pen=(255,0,0), name="Accel curve")
-#p1.plot(t_data, x_data, pen=(0,255,0), name="X curve")
-#p1.plot(t_data, y_data, pen=(0,0,255), name="Y curve")
-#p1.plot(t_data, z_data, pen=(255,0,255), name="Z curve")
+#p1.plot(t_data, calibrateMagnitude(t, x_data, y_data, z_data), pen=(255,0,0), name="Accel curve")
+p1.plot(t_data, x_data, pen=(0,255,0), name="X curve") # green
+p1.plot(t_data, y_data, pen=(0,0,255), name="Y curve") # Blue
+#p1.plot(t_data, lowPassFilter(x_data), pen=(0,255,0), name="X curve") # green
+#p1.plot(t_data, lowPassFilter(y_data), pen=(0,0,255), name="Y curve") # Blue
+p1.plot(t_data, z_data, pen=(255,0,255), name="Z curve") # purple
+
 
 # Light Plot
 p2 = win.addPlot(title="Ambient Light Data")
@@ -94,6 +97,7 @@ p4.setLabel('left', "Temperature (raw and LPF)", units='Degree F')
 p4.setLabel('bottom', "Time", units='s')
 p4.plot(tTemp_data, lowPassFilter(temp_data), pen=(0,255,0), name="Filtered")
 #p4.plot(tTemp_data, temp_data, pen=(0,0,255), name="Unfiltered")
+
 
 print "Accel Duration: {}".format(t_data[-1])
 print "Light Duration: {}".format(tlight_data[-1])

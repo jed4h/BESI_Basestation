@@ -22,6 +22,7 @@ def plotTemp(inFile):
     
     # ignore line with metadata 
     inFile.readline()
+    inFile.readline()
     
     for line in inFile:
         splitData = line.split(",")

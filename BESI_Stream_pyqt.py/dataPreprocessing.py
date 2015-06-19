@@ -4,7 +4,7 @@ from parameters import *
 
 # processes timestamps from a file of raw temp. data
 # the raw timestamp is the time since the last sample
-def processTemp(tempFile):
+def processTemp(tempFile, port):
     lastTime = 0.0
     #first line is the start date/time of the data collection
     startDate =  tempFile.readline()
@@ -14,6 +14,7 @@ def processTemp(tempFile):
     
     outputFile.write(startDate)
     outputFile.write("Timestamp,Degree C,Degree F\n")
+    outputFile.write("Deployment ID: {0}, Relay Station ID: {1}\n".format(DeploymentID, port))
     
     for line in tempFile:
         try:
@@ -31,7 +32,7 @@ def processTemp(tempFile):
  
 # raw sound data does not require any processing
 # this function simply copies data and removes leading 0s 
-def processSound(soundFile):
+def processSound(soundFile, port):
     startDate =  soundFile.readline()
     dt = datetime.datetime.strptime(startDate.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
     fname = "data/Ambient Noise{0}_{1}-{2:02}".format(dt.date(), dt.time().hour, dt.time().minute)
@@ -39,6 +40,7 @@ def processSound(soundFile):
     
     outputFile.write(startDate)
     outputFile.write("Timestamp,Noise Level\n")
+    outputFile.write("Deployment ID: {0}, Relay Station ID: {1}\n".format(DeploymentID, port))
     
     for line in soundFile:
         try:
@@ -54,7 +56,7 @@ def processSound(soundFile):
 
 # raw light data does not require any processing
 # this function simply copies data and removes leading 0s         
-def processLight(lightFile):
+def processLight(lightFile, port):
     startDate =  lightFile.readline()
     dt = datetime.datetime.strptime(startDate.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
     fname = "data/Ambient Light{0}_{1}-{2:02}".format(dt.date(), dt.time().hour, dt.time().minute)
@@ -62,6 +64,7 @@ def processLight(lightFile):
     
     outputFile.write(startDate)
     outputFile.write("Timestamp,Light Level\n")
+    outputFile.write("Deployment ID: {0}, Relay Station ID: {1}\n".format(DeploymentID, port))
     
     for line in lightFile:
         try:
@@ -79,7 +82,7 @@ def processLight(lightFile):
 # the raw timestamp is the number of ticks of a 32768 Hz clock that resets to 0 every second
 # the processed timestamp is the time since the last Bluetooth connection event  
 # the raw timestamps from Shimmer are returned to use to check for corrupted packets 
-def processAccel(accelFile):
+def processAccel(accelFile, port):
     t = []
     lastTime = 0
     lastRelTime = -10000
@@ -90,6 +93,7 @@ def processAccel(accelFile):
     
     outputFile.write(startDate)
     outputFile.write("Timestamp,X-Axis,Y-Axis,Z-Axis\n")
+    outputFile.write("Deployment ID: {0}, Relay Station ID: {1}\n".format(DeploymentID, port))
     
     for line in accelFile:
         data = line.split(",")
