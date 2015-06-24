@@ -28,6 +28,7 @@ DeploymentID = 1
 # Parameters per relay station
 # The port number also acts as a relay station ID
 # Port numbers should be 4 apart
+"""
 PORT0 = 9999
 USE_ACCEL0 = True
 USE_LIGHT0 = False
@@ -37,3 +38,4 @@ PORT1 = 10003
 USE_ACCEL1 = True
 USE_LIGHT1 = True
 USE_ADC1 = True
+"""

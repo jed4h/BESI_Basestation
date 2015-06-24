@@ -1,0 +1,51 @@
+# This file contains the parameters to configure a deployment
+# lines that start with a # are ignored
+# the format for parameters is: <parameter name>=<value>
+
+# Shimmer Parameters
+# Calibration parameters
+# Assumes alignment matrix is:    1 0 0
+#                          		  0 1 0
+#                          		  0 0 1
+# offsets must be integers
+# sensitivities must be integers or floats
+xOff=2086
+yOff=2048
+zOff=2050
+xSens=84.0
+ySens=83.0
+zSens=83.0
+
+# last four characters in the Shimmer Bluetooth ID
+ShimmerID=94:A0
+# Sampling rate of the Shimmer accelerometer
+SAMPLING_RATE=102.4 
+
+# Parameters specific to a deployment
+# if PLOT=False, no plots are displayed
+PLOT=True
+numRelayStat=2   
+DeploymentID=1
+
+# Parameters per relay station
+# The port number also acts as a relay station ID
+# Port numbers should be 4 apart
+# sensors marked as False will be ignored for that relay station
+
+# First Relay station
+PORT=9999
+USE_ACCEL=True
+USE_LIGHT=True
+USE_ADC=True
+
+#Second Relay Station
+PORT=10003
+USE_ACCEL=True
+USE_LIGHT=True
+USE_ADC=True
+
+#Second Relay Station
+PORT=10007
+USE_ACCEL=False
+USE_LIGHT=False
+USE_ADC=False

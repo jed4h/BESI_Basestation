@@ -52,7 +52,8 @@ def recv_nonblocking_length(connection):
     else:
         #print struct.unpack("H", header)
         try:
-            connection.settimeout(1)
+            #print "waiting for {} bytes of data".format(struct.unpack("H", header)[0])
+            #connection.settimeout(1)
             # read until we get a comma
             while(len(header) != 2):
                 header = header + connection.recv(2 - len(header))
@@ -64,10 +65,45 @@ def recv_nonblocking_length(connection):
                 data = data + connection.recv(messageLen - len(data))
         
         except:
+            print "E"
             return None
         
         else:
+            #print "got remaining data"
             return data
+    
+    
+    connection.settimeout(0)
+    try:
+        header = connection.recv(2)
+    except:
+        return None
+    # we got some data, so wait fort he rest  
+    else:
+        #print struct.unpack("H", header)
+        try:
+            #print "waiting for {} bytes of data".format(struct.unpack("H", header)[0])
+            #connection.settimeout(1)
+            # read until we get a comma
+            while(len(header) != 2):
+                header = header + connection.recv(2 - len(header))
+            
+            messageLen = struct.unpack("H", header)[0]
+            #messageLen = int(header[:-1])c
+            
+            data = connection.recv(messageLen)
+        
+        except:
+            print "E"
+            return None
+        
+        else:
+            #print "got remaining data"
+            if len(data) == messageLen:
+                return data
+            #else:
+                #return None
+
 
 # append new_data to array and remove the oldest piece of data from array if the length of array is greater than max_size 
 def append_fixed_size(array, new_data, max_size):
@@ -180,71 +216,72 @@ def update_accel(connection, outFile, t, x, y, z):
     # each accelerometer packet is 22 bytes long
     # check if four packets are ready
     
-    data = recv_nonblocking_length(connection)
+    data = recv_nonblocking(connection, ACCEL_PACKET_SIZE)
     if data != None:
         # if the file is empty, this is the first data received and we need to write the start time
         outFile.seek(0,2)
         if (outFile.tell() == 0):
             outFile.write(str(datetime.now()) + '\n')
         
+        outFile.write(data)
         # save received data
-        split_data = struct.unpack("HHHH", data)
-        outFile.write("{0},{1},{2},{3}\n".format(split_data[0], split_data[1], split_data[2], split_data[3]))
+        #split_data = struct.unpack("HHHH", data)
+        #outFile.write("{0},{1},{2},{3}\n".format(split_data[0], split_data[1], split_data[2], split_data[3]))
         # TODO: Update comment to reflect new packet structure
-        #split_data = parse_accel(data)
+        split_data = parse_accel(data)
         # add data to arrays
         # this only plots the first packet from every group received, which downsamples by 4
         if (split_data[0] != None):
-            append_fixed_size(t, split_data[0]/TICKS_PER_SAMPLE, 200)
+            append_fixed_size(t, split_data[0], 200)
             append_fixed_size(x, split_data[1], 200)
             append_fixed_size(y, split_data[2], 200)
             append_fixed_size(z, split_data[3], 200)
-    
-    
+
+
         try:
             #check for all 0s, which signals a lost connection
             if t[-1] == 0 and x[-1] == 0 and y[-1] == 0 and z[-1] == 0:
                 # write time so that the duration of connection loss can be determined
                 outFile.write(str(datetime.now()) + '\n')
         except:
-            pass      
+            pass    
        
 
 # check if light data is ready
 def update_light(connection, outFile, light):
     # each packet is 25 bytes
-    data = recv_nonblocking_length(connection)
+    data = recv_nonblocking(connection, LIGHT_PACKET_SIZE)
     if data != None:
         # if the file is empty, this is the first data received and we need to write the start time
         outFile.seek(0,2)
         if (outFile.tell() == 0):
             outFile.write(str(datetime.now()) + '\n')
             
-        split_data = struct.unpack("ff", data)
-        outFile.write("{0},{1}\n".format(split_data[0], split_data[1]))
-            
-        #split_data = parse_light(data)
+        #split_data = struct.unpack("ff", data)
+        #outFile.write("{0},{1}\n".format(split_data[0], split_data[1]))
+        outFile.write(data)   
+        split_data = parse_light(data)
         if split_data != None:
-            append_fixed_size(light, split_data[1], 200)
+            append_fixed_size(light, split_data, 200)
 
 
 # check if sound data is ready    
 def update_sound(connection, outFile, sound, sound_sum):
     # each packet is 23 bytes
-    data = recv_nonblocking_length(connection)
+    data = recv_nonblocking(connection, MIC_PACKET_SIZE)
     if data != None:
         # if the file is empty, this is the first data received and we need to write the start time
         outFile.seek(0,2)
         if (outFile.tell() == 0):
             outFile.write(str(datetime.now()) + '\n')
          
-        split_data = struct.unpack("ff", data)
-        outFile.write("{0},{1}\n".format(split_data[0], split_data[1]))   
-        #outFile.write(data)
-        #split_data = parse_sound(data)
+        #split_data = struct.unpack("ff", data)
+        #outFile.write("{0},{1}\n".format(split_data[0], split_data[1]))   
+        outFile.write(data)
+        split_data = parse_sound(data)
         if split_data != None:
             # noise data is plotted over 1000 samples = 10 seconds
-            append_fixed_size(sound, split_data[1], 1000)
+            append_fixed_size(sound, split_data, 1000)
             
             # moving average - no longer used
             to_avg = sound
@@ -257,20 +294,20 @@ def update_sound(connection, outFile, sound, sound_sum):
 # check if temperature data is ready    
 def update_temp(connection, outFile, temp):
     # size of a temperature data packet is 20 bytes
-    data = recv_nonblocking_length(connection)
+    data = recv_nonblocking(connection, TEMP_PACKET_SIZE)
     if data != None:
         # if the file is empty, this is the first data received and we need to write the start time
         outFile.seek(0,2)
         if (outFile.tell() == 0):
             outFile.write(str(datetime.now()) + '\n')
          
-        split_data = struct.unpack("fff", data)
-        outFile.write("{0},{1},{2}\n".format(split_data[0], split_data[1], split_data[2]))
+        #split_data = struct.unpack("fff", data)
+        #outFile.write("{0},{1},{2}\n".format(split_data[0], split_data[1], split_data[2]))
            
-        #outFile.write(data)
-        #split_data = parse_temp(data)
+        outFile.write(data)
+        split_data = parse_temp(data)
         if split_data != None:
-            append_fixed_size(temp, split_data[2], 200)
+            append_fixed_size(temp, split_data, 200)
         
 # initialize plots    
 def init_plot():
