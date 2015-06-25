@@ -20,7 +20,7 @@ def calibrateMagnitude(t, x, y, z):
     z_calib = []
     accelMag = []
     
-    remove_corrupted = False
+    remove_corrupted = True
     
     # a reading of 0 indicates no connection
     for i in range(len(x)):
@@ -46,7 +46,7 @@ def calibrateMagnitude(t, x, y, z):
             accelMag.append(math.sqrt(x_calib[-1]**2 + y_calib[-1]**2 + z_calib[-1]**2))
             
         else:
-            # currupted packet - dignore 16 readings and write 0s instead
+            # currupted packet - ignore 16 readings and write 0s instead
             accelMag.append(0)
             invalid_count = invalid_count + 1
             print t_last

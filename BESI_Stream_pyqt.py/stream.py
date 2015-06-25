@@ -60,17 +60,24 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
     def update():
         plot_update_all(connection, connection2, connection3, connection4, faccel, flight, soundFile, tempFile, t, x, y ,z, light, sound, sound_sum, temp, USE_ACCEL, USE_LIGHT, USE_ADC)
         if PLOT:
-            try:
-                curves[0].setData(x)
-                curves[1].setData(y)
-                curves[2].setData(z)
-                curves[3].setData(t)
-                curves[4].setData(light)
-                curves[5].setData(sound)
-                curves[7].setData(temp)
-                
-            except:
-                pass
+            curves[0].setData(x)
+            curves[1].setData(y)
+            curves[2].setData(z)
+            curves[3].setData(t)
+            curves[4].setData(light)
+            curves[5].setData(sound)
+            curves[7].setData(temp)
+            
+            """
+            if len(x) == 200:
+                print x
+                print y
+                print z
+                print t
+                print light
+                print sound
+                print temp
+            """
                 
         if BIKE_CADENCE:
             # intervals is meaningless because only raw timestamps are available

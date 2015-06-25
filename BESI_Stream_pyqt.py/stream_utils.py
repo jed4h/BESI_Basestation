@@ -145,9 +145,7 @@ def parse_accel(raw_data):
         #data.append(None)
      
     if index != 0:
-        data.append(None)
-        data.append(None)
-        data.append(None)
+        data[0] = None
         
     return data
 
@@ -262,7 +260,7 @@ def update_light(connection, outFile, light):
         outFile.write(data)   
         split_data = parse_light(data)
         if split_data != None:
-            append_fixed_size(light, split_data, 200)
+            append_fixed_size(light, float(split_data), 200)
 
 
 # check if sound data is ready    
@@ -288,7 +286,7 @@ def update_sound(connection, outFile, sound, sound_sum):
             if len(sound) > 100:
                 to_avg = sound[len(sound) - 100:]
                 
-            append_fixed_size(sound_sum, moving_avg(to_avg), 1000)
+            append_fixed_size(sound_sum, float(moving_avg(to_avg)), 1000)
             
 
 # check if temperature data is ready    
@@ -307,7 +305,7 @@ def update_temp(connection, outFile, temp):
         outFile.write(data)
         split_data = parse_temp(data)
         if split_data != None:
-            append_fixed_size(temp, split_data, 200)
+            append_fixed_size(temp, float(split_data), 200)
         
 # initialize plots    
 def init_plot():
