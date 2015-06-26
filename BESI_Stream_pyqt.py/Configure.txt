@@ -18,8 +18,6 @@ zSens=83.0
 
 # last four characters in the Shimmer Bluetooth ID
 ShimmerID=94:A0
-# Sampling rate of the Shimmer accelerometer
-SAMPLING_RATE=102.4 
 
 # Parameters specific to a deployment
 # if PLOT=False, no plots are displayed
@@ -36,7 +34,7 @@ DeploymentID=1
 PORT=9999
 USE_ACCEL=True
 USE_LIGHT=True
-USE_ADC=True
+USE_ADC=False
 
 #Second Relay Station
 PORT=10003
@@ -44,7 +42,7 @@ USE_ACCEL=True
 USE_LIGHT=True
 USE_ADC=True
 
-#Second Relay Station
+#Third Relay Station
 PORT=10007
 USE_ACCEL=False
 USE_LIGHT=False

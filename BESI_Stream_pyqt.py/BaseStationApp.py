@@ -72,13 +72,6 @@ if __name__ == '__main__':
                     print "ShimmerID: ",ShimmerID
             except:
                 print "Error processing ShimmerID"
-                
-            try:
-                if splitLine[0] == "SAMPLING_RATE":
-                    SAMPLING_RATE = float(splitLine[1])
-                    print "Sampling Rate: ",SAMPLING_RATE
-            except:
-                print "Error processing Sampling Rate"
             
             try:
                 if splitLine[0] == "PLOT":
@@ -116,6 +109,7 @@ if __name__ == '__main__':
             except:
                 "Error processing relay station parameters"
                 
+                
     print "Relay Station IDs: ",ports
     print "Use Accelerometer: ",useAccel
     print "Use Microphone and Temperature Sensor: ",useADC
@@ -132,7 +126,7 @@ if __name__ == '__main__':
     # Create a process for each BeagleBone
     try:
         for i in range(numRelayStat):
-            streamingProcs.append(multiprocessing.Process(target = stream.stream_process, args=(ports[i], useAccel[i], useLight[i], useADC[i])))
+            streamingProcs.append(multiprocessing.Process(target = stream.stream_process, args=(ports[i], useAccel[i], useLight[i], useADC[i], ShimmerID, PLOT)))
     except:
         print "Error reading config file: incorrect parameters for relay stations"
     

@@ -2,13 +2,13 @@
 from datetime import datetime
 from pyqtgraph.Qt import QtGui, QtCore
 from stream_utils import *
-from parameters import PLOT
+from parameters import *
 from BikeCadence import peakDetection
 
 
 # receives data from the BBB using a different socket for each sensor
 # the port number for the accelerometer is given, and the other sockets are consecutive numbers following PORT
-def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = True):
+def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = True, ShimmerID = "94:A0", PLOT=True):
     t = []
     x = []
     y = []
@@ -30,6 +30,14 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
     #flight.write(str(datetime.now()) + '\n')
     #soundFile.write(str(datetime.now()) + '\n')
     #tempFile.write(str(datetime.now()) + '\n')
+    
+    try:
+        connection = connectRecv(PORT)
+        configMsg = "{},{},{},{},".format(USE_ACCEL, USE_ADC, USE_LIGHT, ShimmerID)
+        connection.sendall("{:03}".format(len(configMsg)) + configMsg)
+        connection.close()
+    except:
+        pass
     
     # establish socket connections for each sensor used
     if USE_ACCEL:

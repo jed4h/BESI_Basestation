@@ -214,7 +214,7 @@ def update_accel(connection, outFile, t, x, y, z):
     # each accelerometer packet is 22 bytes long
     # check if four packets are ready
     
-    data = recv_nonblocking(connection, ACCEL_PACKET_SIZE)
+    data = recv_nonblocking(connection, 4 * ACCEL_PACKET_SIZE)
     if data != None:
         # if the file is empty, this is the first data received and we need to write the start time
         outFile.seek(0,2)
