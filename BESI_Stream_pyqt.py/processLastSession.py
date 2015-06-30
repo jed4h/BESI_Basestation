@@ -1,20 +1,32 @@
 # Performs some processing on sensor data files,saves the files, and plots the data 
 # File name is the sensor ID + the date it was recorded
-from dataPreprocessing import *
 from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
-from plotSavedAccel import plotAccel, calibrateMagnitude
-from plotSavedLight import plotLight
-from plotSavedNoise import plotNoise
-from plotSavedTemp import plotTemp, lowPassFilter
+from processAccel import plotAccel, calibrateMagnitude
+from processLight import plotLight
+from processNoise import plotNoise
+from processTemp import plotTemp, lowPassFilter
 import os
+from processParseConfig import processParseConfig
+from processAccel import processAccel
+from processLight import processLight
+from processNoise import processSound
+from processTemp import processTemp
 
 #raw data files are named based on the socket port used to get the data from the BBB
-basePort = input("Enter the relay station ID: ")
+basePort = int(raw_input("Enter the relay station ID: "))
 
 # use a separate folder to save data files
 if not os.path.exists("data"):
     os.mkdir("data")
+
+# read config.txt to get the deployment ID
+try:
+    DeploymentID = processParseConfig()
+except:
+    print "Error reading configuration file"
+    
+
 
 try:
     rawAccelFile = open("data/accel" + "{}".format(basePort), "r")
@@ -27,39 +39,55 @@ except:
 else:
     # processing is mostly creating timestamps relative to he start of the data collection
     # these functions produce files name sensor ID + date
-    fname1, t = processAccel(rawAccelFile, basePort)
-    fname2 = processLight(rawLightFile, basePort)
-    fname3 = processSound(rawNoiseFile, basePort)
-    fname4 = processTemp(rawTempFile, basePort)
+    # process accel does processing and returns arrays to plot. All the others just process and write to a file
+    fname1, t, t_data, x_data, y_data, z_data = processAccel(rawAccelFile, basePort, DeploymentID)
+    fname2 = processLight(rawLightFile, basePort, DeploymentID)
+    fname3 = processSound(rawNoiseFile, basePort, DeploymentID)
+    fname4 = processTemp(rawTempFile, basePort, DeploymentID)
     
     rawAccelFile.close()
     rawLightFile.close()
     rawNoiseFile.close()
     rawTempFile.close()
     
-    # open processed data files
-    accelProcFile = open(fname1, "r")
-    lightProcFile = open(fname2, "r")
-    noiseProcFile = open(fname3, "r")
-    tempProcFile = open(fname4, "r")
+    # plot<sensor> functions take the processed file and return arrays to plot
+    #if fname1 != None:
+    #    accelProcFile = open(fname1, "r")
     
+    # if the file = None, the raw data file was empty
+    if fname2 != None:
+        lightProcFile = open(fname2, "r")
+        tlight_data, light_data = plotLight(lightProcFile)
+    else:
+        lightProcFile = None
+        tlight_data = []
+        light_data = []
+        
+    if fname3 != None:
+        noiseProcFile = open(fname3, "r")
+        tnoise_data, noise_data = plotNoise(noiseProcFile)
+    else:
+        noiseProcFile = None
+        tnoise_data = []
+        noise_data = []
+        
+    if fname4 != None:
+        tempProcFile = open(fname4, "r")
+        tTemp_data, temp_data = plotTemp(tempProcFile)
+    else:
+        tempProcFile = None
+        temp_data = []
+        tTemp_data = []
+            
     """
-    # open processed data files
+    # This can be uncommented to plot processed data from a previous session
     accelProcFile = open("data/Accelerometer2015-06-12_11-13", "r")
     lightProcFile = open("data/Ambient Light2015-06-03", "r")
     noiseProcFile = open("data/Ambient Noise2015-06-03", "r")
     tempProcFile = open("data/Temperature2015-06-03", "r")
     """
     
-    # create time series of data from each file
-    t_data, x_data, y_data, z_data = plotAccel(accelProcFile)
-    tlight_data, light_data = plotLight(lightProcFile)
-    tnoise_data, noise_data = plotNoise(noiseProcFile)
-    tTemp_data, temp_data = plotTemp(tempProcFile)
-    
     app = QtGui.QApplication([])
-    #mw = QtGui.QMainWindow()
-    #mw.resize(800,800)
                
     win = pg.GraphicsWindow(title="Basic plotting examples")
     win.resize(1000,600)
@@ -101,16 +129,36 @@ else:
     p4.plot(tTemp_data, lowPassFilter(temp_data), pen=(0,255,0), name="Filtered")
     #p4.plot(tTemp_data, temp_data, pen=(0,0,255), name="Unfiltered")
     
+    # print the total time of recorded for each sensor
+    try:
+        print "Accel Duration: {}".format(t_data[-1])
+    except:
+        print "Accel Duration: 0"
+        
+    try:
+        print "Light Duration: {}".format(tlight_data[-1])
+    except:
+        print "Light Duration: 0"
     
-    print "Accel Duration: {}".format(t_data[-1])
-    print "Light Duration: {}".format(tlight_data[-1])
-    print "Noise Duration: {}".format(tnoise_data[-1])
-    print "Temp Duration: {}".format(tTemp_data[-1])
+    try:
+        print "Noise Duration: {}".format(tnoise_data[-1])
+    except:
+        print "Noise Duration: 0"
+        
+    try:
+        print "Temp Duration: {}".format(tTemp_data[-1])
+    except:
+        print "Temp Duration: 0"
     
-    accelProcFile.close()
-    lightProcFile.close()
-    noiseProcFile.close()
-    tempProcFile.close()
+    #accelProcFile.close()
+    if lightProcFile !=None:
+        lightProcFile.close()
+        
+    if noiseProcFile != None:
+        noiseProcFile.close()
+        
+    if tempProcFile != None:
+        tempProcFile.close()
     
     
     ## Start Qt event loop unless running in interactive mode or using pyside.

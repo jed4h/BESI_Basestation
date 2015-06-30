@@ -1,9 +1,13 @@
 # the stream_process function receives and plots sensor data from a single BBB
 from datetime import datetime
 from pyqtgraph.Qt import QtGui, QtCore
-from stream_utils import *
+from streamUtils import *
 from parameters import *
 from BikeCadence import peakDetection
+from streamAccel import update_accel
+from streamLight import update_light
+from streamSound import update_sound
+from streamTemp import update_temp
 
 
 # receives data from the BBB using a different socket for each sensor
@@ -31,6 +35,8 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
     #soundFile.write(str(datetime.now()) + '\n')
     #tempFile.write(str(datetime.now()) + '\n')
     
+    # send info to the BBB: Shimmer Bluetooth ID and what sensors to use
+    # this uses the same port as the accelerometer and closes it after sending the info
     try:
         connection = connectRecv(PORT)
         configMsg = "{},{},{},{},".format(USE_ACCEL, USE_ADC, USE_LIGHT, ShimmerID)
@@ -75,18 +81,8 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
             curves[4].setData(light)
             curves[5].setData(sound)
             curves[7].setData(temp)
-            
-            """
-            if len(x) == 200:
-                print x
-                print y
-                print z
-                print t
-                print light
-                print sound
-                print temp
-            """
-                
+        
+        # application that prints the cadence of someone biking       
         if BIKE_CADENCE:
             # intervals is meaningless because only raw timestamps are available
             pedal_count, intervals = peakDetection(x[120:], y[120:], t[120:])
@@ -101,9 +97,28 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
         QtGui.QApplication.instance().exec_()
     
-    # cleanup: close files and write end time to accel file    
+    # cleanup: close files and write end time to accel file
+    # I don't think this code is ever called
+    # TODO: find a way to close the files when done
     faccel.write(str(datetime.now()) + '\n')
     faccel.close()
     flight.close()
     soundFile.close()
     tempFile.close()
+    
+# runs update functions for each sensor used
+# update functions check if data is ready and update the plot ifit is
+#con1 = accel, con2 = light, con3 = sound, con4 = temp
+def plot_update_all(con1, con2, con3, con4, faccel, flight, soundFile, tempFile, t, x, y ,z, light, sound, sound_sum, temp, USE_ACCEL, USE_LIGHT, USE_ADC):
+    # update accel
+    if USE_ACCEL:
+        update_accel(con1, faccel, t, x, y, z)
+        
+    # update light
+    if USE_LIGHT:
+        update_light(con2, flight, light)
+        
+    # update ADC (noise and temp)
+    if USE_ADC:
+        update_sound(con3, soundFile, sound, sound_sum)
+        update_temp(con4, tempFile, temp)
