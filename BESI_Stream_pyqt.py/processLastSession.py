@@ -54,6 +54,9 @@ else:
     #if fname1 != None:
     #    accelProcFile = open(fname1, "r")
     
+    #accelProcFile = open("data/Accelerometer2015-06-12_11-13", "r")
+    #t_data, x_data, y_data, z_data = plotAccel(accelProcFile)
+    
     # if the file = None, the raw data file was empty
     if fname2 != None:
         lightProcFile = open(fname2, "r")
@@ -79,13 +82,12 @@ else:
         temp_data = []
         tTemp_data = []
             
-    """
+    
     # This can be uncommented to plot processed data from a previous session
-    accelProcFile = open("data/Accelerometer2015-06-12_11-13", "r")
-    lightProcFile = open("data/Ambient Light2015-06-03", "r")
-    noiseProcFile = open("data/Ambient Noise2015-06-03", "r")
-    tempProcFile = open("data/Temperature2015-06-03", "r")
-    """
+    
+    #lightProcFile = open("data/Ambient Light2015-06-03", "r")
+    #noiseProcFile = open("data/Ambient Noise2015-06-03", "r")
+    #tempProcFile = open("data/Temperature2015-06-03", "r")
     
     app = QtGui.QApplication([])
                

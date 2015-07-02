@@ -66,7 +66,7 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
     
     app = QtGui.QApplication([])
     if PLOT:
-        win, curves = init_plot()
+        win, curves = init_plot(PORT)
         
     
     

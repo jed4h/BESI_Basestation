@@ -210,7 +210,7 @@ def plotAccel(inFile):
 
 # processes timestamps from shimmer, writes the results to a file and returns arrays to plot
 def processAccel(accelFile, port, DeploymentID):
-    t = []
+    rawTime = []
     lastTime = 0
     
     t_data = []
@@ -248,7 +248,7 @@ def processAccel(accelFile, port, DeploymentID):
             relTime, xAxis, yAxis, zAxis, nLine = data
         except: # line is a datetime object or an incomplete line
             try:
-                datetime.datetime.strptime(line.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
+                dt = datetime.datetime.strptime(line.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
             except:
                 pass
             else:
@@ -258,6 +258,7 @@ def processAccel(accelFile, port, DeploymentID):
                 # time is reset for each disconnect event
                 t = dt.time().hour * 3600 + dt.time().minute * 60 + dt.time().second + dt.time().microsecond /1000000.0
                 timeOffset = t - startTime
+                print timeOffset
                 lastTime = 0
         else:
             # for each valid data entry, the time stamp is incremented by the time between samples
@@ -267,12 +268,12 @@ def processAccel(accelFile, port, DeploymentID):
             else:
                 lastTime = lastTime + TICK_TIME
             # t is the raw timestamps from shimmer
-            t.append(relTime)
+            rawTime.append(relTime)
             lastRelTime = int(relTime)
             t_data.append(float(lastTime) + timeOffset)
             x_data.append(int(xAxis))
             y_data.append(int(yAxis))
             z_data.append(int(zAxis))
-            outputFile.write("{0:.2f},{1},{2},{3}\n".format(float(lastTime), int(xAxis), int(yAxis), int(zAxis)))
+            outputFile.write("{0:.2f},{1},{2},{3}\n".format(float(lastTime) + timeOffset, int(xAxis), int(yAxis), int(zAxis)))
             
-    return fname, t, t_data, x_data, y_data, z_data
+    return fname, rawTime, t_data, x_data, y_data, z_data

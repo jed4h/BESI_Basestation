@@ -1,4 +1,4 @@
-# This file contains the parameters to configure a deployment
+ +# This file contains the parameters to configure a deployment
 # lines that start with a # are ignored
 # the format for parameters is: <parameter name>=<value>
 
@@ -8,7 +8,7 @@
 #                          		  0 1 0
 #                          		  0 0 1
 # offsets must be integers
-# sensitivities must be integers or floats
+# sensitivities must be integers or floats+
 xOff=2086
 yOff=2048
 zOff=2050
@@ -34,7 +34,7 @@ DeploymentID=1
 PORT=9999
 USE_ACCEL=True
 USE_LIGHT=True
-USE_ADC=False
+USE_ADC=True
 
 #Second Relay Station
 PORT=10003

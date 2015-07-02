@@ -9,7 +9,7 @@ def processLight(lightFile, port, DeploymentID):
     try:
         dt = datetime.strptime(startDate.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
     except:
-        print "Empty Temperature File"
+        print "Empty Light File"
         return None
         
     fname = "data/Ambient Light{0}_{1}-{2:02}".format(dt.date(), dt.time().hour, dt.time().minute)

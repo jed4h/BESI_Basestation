@@ -119,11 +119,11 @@ def connectRecv(port):
     return connection
         
 # initialize plots    
-def init_plot():
+def init_plot(relayID):
     curves = []
     win = pg.GraphicsWindow(title="Accelerometer data")
     win.resize(1000,600)
-    win.setWindowTitle('Data from Relay Station')
+    win.setWindowTitle('Data from Relay Station {}'.format(relayID))
     
     # Enable antialiasing for prettier plots
     pg.setConfigOptions(antialias=True)

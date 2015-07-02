@@ -9,7 +9,7 @@ def processSound(soundFile, port, DeploymentID):
     try:
         dt = datetime.strptime(startDate.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
     except:
-        print "Empty Temperature File"
+        print "Empty Sound File"
         return None
     
     fname = "data/Ambient Noise{0}_{1}-{2:02}".format(dt.date(), dt.time().hour, dt.time().minute)
