@@ -76,7 +76,7 @@ def processTimestampAccel(accelFile, port, DeploymentID):
         return None
    
     # file name is based on start date and time of session
-    fname = "data/Accelerometer{0}_{1}-{2:02}".format(dt.date(), dt.time().hour, dt.time().minute)
+    fname = "data/Accelerometer{0}_{1}-{2:02}_{3}".format(dt.date(), dt.time().hour, dt.time().minute, DeploymentID)
     outputFile = open(fname, "w")
     
     outputFile.write(startDate)
@@ -111,112 +111,39 @@ def processTimestampAccel(accelFile, port, DeploymentID):
             
     return fname, t
   
-# reads a file of accelerometer data and returns arrays to be plotted
-##############
-##Deprecated##
-##############
+# reads a file of accelerometer data and returns arrays of timestamps, x, y, and z-axes to be plotted
 def plotAccel(inFile):
     t_data = []
     x_data = []
     y_data = []
     z_data = []
     
-    index = 0
-    x = 0
-    y = 0
-    z = 0
-    
-    # after a disconnect the next line is a datetime string
-    lineIsDate = False
-    
     # first line holds the start date and time
     startDate =  inFile.readline()
     
-    try:
-        dt = datetime.datetime.strptime(startDate.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
-    except:
-        print "Empty Accelerometer File"
-        return None
-    
-    outputFile = open("data/Accelerometer{}_V2".format(dt.date()), "w")
-    outputFile.write(startDate)
-    
-    # convert into seconds
-    startTime = dt.time().hour * 3600 + dt.time().minute * 60 + dt.time().second + dt.time().microsecond /1000000.0
-    # timeOffset is used to correct for periods when the connection is lost
-    timeOffset = 0
-    
     # ignore line with metadata 
-    outputFile.write(inFile.readline())
-    outputFile.write(inFile.readline())
+    inFile.readline()
+    inFile.readline()
     
     for line in inFile:
-        if lineIsDate:
-            # if the line contains a date and time, adjust the timeOffset
-            try:
-                dt = datetime.datetime.strptime(line.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
-            except:
-                pass
-            else:
-                # convert into seconds
-                t = dt.time().hour * 3600 + dt.time().minute * 60 + dt.time().second + dt.time().microsecond /1000000.0
-                timeOffset = t - startTime
-            lineIsDate = False
-            
-        # parse the line of data   
+        splitLine = line.split(",")
+        try:
+            float(splitLine[0])
+        except:
+            print "error processing float"
         else:
-            for element in line.split(","):
-                try:
-                    float(element)
-                except:
-                    print "error processing float"
-                else:
-                    if index == 0:
-                        # t is the time since the last bluetooth connection
-                        t = float(element)
-                        index = 1
-                        
-                        #if len(t) == 201:
-                        #    t.pop(0)
-                        #    x.pop(0)
-                        #    y.pop(0)
-                        #    z.pop(0)
-                            
-                    elif index == 1:
-                        x = float(element)
-                        index = 2
-                    elif index == 2:
-                        y = float(element)
-                        index = 3
-                    else:
-                        z = float(element)
-                        index = 0
-            
-            # connection is lost, next line is a time and date
-            if x == 0 and y == 0 and z == 0:
-                lineIsDate = True
-                
-            
-            t_data.append(t + timeOffset)
-            x_data.append(x)
-            y_data.append(y)
-            z_data.append(z)
-            
-    for i in range(len(t_data)):
-        outputFile.write("{0},{1},{2},{3}\n".format(t_data[i], x_data[i], y_data[i], z_data[i]))
+            t_data.append(float(splitLine[0]))
+            x_data.append(float(splitLine[1]))
+            y_data.append(float(splitLine[2]))
+            z_data.append(float(splitLine[3]))
             
     return t_data, x_data, y_data, z_data
 
 
-# processes timestamps from shimmer, writes the results to a file and returns arrays to plot
+# processes timestamps from shimmer and writes the results to a file
 def processAccel(accelFile, port, DeploymentID):
     rawTime = []
     lastTime = 0
-    
-    t_data = []
-    x_data = []
-    y_data = []
-    z_data = []
     
     # initial value needs to be > -640 so the first sample does not look like it is 2 samples after this
     lastRelTime = -10000
@@ -224,21 +151,19 @@ def processAccel(accelFile, port, DeploymentID):
     
     # if the basestation gets any streaming data, the first line is a date and time
     try:
-        dt = datetime.datetime.strptime(startDate.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
+        startTime = datetime.datetime.strptime(startDate.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
     except:
         print "Empty Accelerometer File"
-        return None, [], [], [], [], []
+        return None, []
    
     # file name is based on start date and time of session
-    fname = "data/Accelerometer{0}_{1}-{2:02}".format(dt.date(), dt.time().hour, dt.time().minute)
+    fname = "data/Accelerometer{0}_{1}-{2:02}".format(startTime.date(), startTime.time().hour, startTime.time().minute)
     outputFile = open(fname, "w")
     
     outputFile.write(startDate)
     outputFile.write("Timestamp,X-Axis,Y-Axis,Z-Axis\n")
     outputFile.write("Deployment ID: {0}, Relay Station ID: {1}\n".format(DeploymentID, port))
     
-    # convert into seconds
-    startTime = dt.time().hour * 3600 + dt.time().minute * 60 + dt.time().second + dt.time().microsecond /1000000.0
     # timeOffset is used to correct for periods when the connection is lost
     timeOffset = 0
     
@@ -256,9 +181,8 @@ def processAccel(accelFile, port, DeploymentID):
                 #outputFile.write(data[0])
                 #print "found a date"
                 # time is reset for each disconnect event
-                t = dt.time().hour * 3600 + dt.time().minute * 60 + dt.time().second + dt.time().microsecond /1000000.0
-                timeOffset = t - startTime
-                print timeOffset
+                timeOffset = (dt - startTime).days * 86400 + (dt - startTime).seconds + (dt - startTime).microseconds/1000000.0
+                #print timeOffset
                 lastTime = 0
         else:
             # for each valid data entry, the time stamp is incremented by the time between samples
@@ -270,10 +194,6 @@ def processAccel(accelFile, port, DeploymentID):
             # t is the raw timestamps from shimmer
             rawTime.append(relTime)
             lastRelTime = int(relTime)
-            t_data.append(float(lastTime) + timeOffset)
-            x_data.append(int(xAxis))
-            y_data.append(int(yAxis))
-            z_data.append(int(zAxis))
             outputFile.write("{0:.2f},{1},{2},{3}\n".format(float(lastTime) + timeOffset, int(xAxis), int(yAxis), int(zAxis)))
             
-    return fname, rawTime, t_data, x_data, y_data, z_data
+    return fname, rawTime

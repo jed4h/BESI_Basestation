@@ -25,8 +25,12 @@ if __name__ == '__main__':
     print "Use Microphone and Temperature Sensor: ",useADC
     print "Use Light Sensor", useLight
     
-    # print the host IP address so the user can enter it in the BBB application   
-    name = socket.gethostname()   
+    # print the host IP address so the user can enter it in the BBB application
+    # If the basestation has 2 IP addresses, assume the second one is the local network that the BBB will connect to
+    try:
+        name = socket.gethostbyname_ex(socket.gethostname())[-1][1]
+    except:
+        name = socket.gethostbyname_ex(socket.gethostname())[-1][0]
     try:
         host = socket.gethostbyname(name)
         print "Basestation IP Address: ",host
@@ -46,3 +50,4 @@ if __name__ == '__main__':
    
     for proc in streamingProcs:  
         proc.join()
+        

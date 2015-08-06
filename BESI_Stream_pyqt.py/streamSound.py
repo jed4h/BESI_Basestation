@@ -4,7 +4,7 @@ from parameters import *
 # check if sound data is ready    
 def update_sound(connection, outFile, sound, sound_sum):
     # each packet is 23 bytes
-    data = recv_nonblocking(connection, MIC_PACKET_SIZE)
+    data = recv_nonblocking(connection, 5 * MIC_PACKET_SIZE)
     if data != None:
         # if the file is empty, this is the first data received and we need to write the start time
         outFile.seek(0,2)

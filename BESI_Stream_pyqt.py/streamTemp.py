@@ -1,5 +1,7 @@
 from streamUtils import *
 from parameters import *
+from kernel_test import isOutlier
+from processTemp import lowPassFilter
 
 # check if temperature data is ready    
 def update_temp(connection, outFile, temp):
@@ -18,6 +20,10 @@ def update_temp(connection, outFile, temp):
         split_data = parse_temp(data)
         if split_data != None:
             append_fixed_size(temp, float(split_data), 200)
+        
+            outlierProb = isOutlier(lowPassFilter(temp), 20)
+            if (outlierProb > 0.8):
+                print outlierProb
 
 # parses values for timestamp, degree C, degree F from string in csv format
 # for plotting we only care about the degree F because the time axis is in samples                 

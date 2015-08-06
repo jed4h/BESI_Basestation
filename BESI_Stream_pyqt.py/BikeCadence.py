@@ -4,7 +4,7 @@ import numpy as np
 import pyqtgraph as pg
 
 # read raw accelerometer data from a file
-fileName = "Accelerometer2015-06-12_V2"
+#fileName = "data/Accelerometer2015-06-12_V2"
 
 # low pass filter y[n] = .9y[n-1] + .1x[n]
 def lowPassFilter(unfilteredData):
@@ -166,5 +166,4 @@ if __name__ == '__main__':
     import sys
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
         QtGui.QApplication.instance().exec_()
-            
-"""
+"""           

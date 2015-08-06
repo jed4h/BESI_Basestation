@@ -101,7 +101,11 @@ def connectRecv(port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
     # Bind the socket to the port
-    server_address = (socket.gethostname(), port)
+    try:
+        name = socket.gethostbyname_ex(socket.gethostname())[-1][1]
+    except:
+        name = socket.gethostbyname_ex(socket.gethostname())[-1][0]
+    server_address = (name, port)
     print >>sys.stderr, 'starting up on %s port %s' % server_address
     sock.bind(server_address)
     
@@ -135,6 +139,8 @@ def init_plot(relayID):
     win.nextRow()
     p3 = win.addPlot(title="Noise")
     p4 = win.addPlot(title="Temperature")
+    win.nextRow()
+    p5 = win.addPlot(title="Door Sensor")
     
     # ranges for each graph
     p1.setXRange(0, 200)
@@ -145,6 +151,10 @@ def init_plot(relayID):
     p3.setYRange(0,40)
     p4.setXRange(0, 200)
     p4.setYRange(30,100)
+    p5.setXRange(0, 1000)
+    p5.setYRange(0,100)
+    
+    
     
     # create a array of curve handlers to return
     curves.append(p1.plot(pen=(255,0,0), name="X-Axis"))
@@ -157,5 +167,8 @@ def init_plot(relayID):
     curves.append(p3.plot(pen = (0, 255, 0), name="Noise"))
     curves.append(p3.plot(pen = (255, 0, 0), name="Noise_Avg"))
     curves.append(p4.plot(pen=(255,0,0), name="temperature"))
+    
+    curves.append(p5.plot(pen=(255,0,0), name="door sensor 1"))
+    curves.append(p5.plot(pen=(0,0,255), name="door sensor 2"))
     
     return win, curves

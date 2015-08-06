@@ -8,11 +8,26 @@ from streamAccel import update_accel
 from streamLight import update_light
 from streamSound import update_sound
 from streamTemp import update_temp
+from streamDoor import update_door
+from processSession import processSession
 
+
+faccel = None
+soundFile = None
+tempFile = None
+doorFile = None
+flight = None
+plotStartTime = None
 
 # receives data from the BBB using a different socket for each sensor
 # the port number for the accelerometer is given, and the other sockets are consecutive numbers following PORT
 def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = True, ShimmerID = "94:A0", PLOT=True):
+    global faccel
+    global soundFile
+    global tempFile
+    global doorFile
+    global flight
+    global plotStartTime
     t = []
     x = []
     y = []
@@ -21,13 +36,9 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
     sound = []
     temp = []
     sound_sum = []
+    door1 = []
+    door2 = []
    
-    # temporary files to hold the raw data for each sensor
-    faccel = open("data/accel{}".format(PORT), "w")
-    flight = open("data/light{}".format(PORT + 1), "w")
-    soundFile = open("data/sound{}".format(PORT + 2), "w")
-    tempFile = open("data/temp{}".format(PORT + 3), "w")
-    
     # write start time
     # Now done in stream when data is first received
     #faccel.write(str(datetime.now()) + '\n')
@@ -48,17 +59,23 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
     # establish socket connections for each sensor used
     if USE_ACCEL:
         connection = connectRecv(PORT)
+        faccel = open("data/accel{}".format(PORT), "w")
     else:
         connection = None
         
     if USE_LIGHT:
         connection2 = connectRecv(PORT + 1)
+        flight = open("data/light{}".format(PORT + 1), "w")
     else:
         connection2 = None
         
     if USE_ADC:
         connection3 = connectRecv(PORT + 2)
         connection4 = connectRecv(PORT + 3)
+        connection5 = connectRecv(PORT + 4)
+        soundFile = open("data/sound{}".format(PORT + 2), "w")
+        tempFile = open("data/temp{}".format(PORT + 3), "w")
+        doorFile = open("data/door{}".format(PORT + 4), "w")
     else:
         connection3 = None
         connection4 = None
@@ -68,11 +85,46 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
     if PLOT:
         win, curves = init_plot(PORT)
         
-    
+    plotStartTime = datetime.now()
     
     # update is called every 5 ms and updates the data for each plot
     def update():
-        plot_update_all(connection, connection2, connection3, connection4, faccel, flight, soundFile, tempFile, t, x, y ,z, light, sound, sound_sum, temp, USE_ACCEL, USE_LIGHT, USE_ADC)
+        global faccel
+        global soundFile
+        global tempFile
+        global doorFile
+        global flight
+        global plotStartTime
+        
+        plotCurrTime = datetime.now()
+        if ((plotCurrTime - plotStartTime).seconds == 100):
+            print "Bingo."
+            plotStartTime = datetime.now()
+            if USE_ACCEL:
+                faccel.close()
+                
+            if USE_ADC:
+                soundFile.close()
+                tempFile.close()
+                doorFile.close()
+                
+            if USE_LIGHT:
+                flight.close()
+            
+            processSession(PORT)
+            
+            if USE_ACCEL:
+                faccel = open("data/accel{}".format(PORT), "w")
+                
+            if USE_ADC:
+                soundFile = open("data/sound{}".format(PORT + 2), "w")
+                tempFile = open("data/temp{}".format(PORT + 3), "w")
+                doorFile = open("data/door{}".format(PORT + 4), "w")
+                
+            if USE_LIGHT:
+                flight = open("data/light{}".format(PORT + 1), "w")
+            
+        plot_update_all(connection, connection2, connection3, connection4, connection5, faccel, flight, soundFile, tempFile, doorFile, t, x, y ,z, light, sound, sound_sum, temp, door1, door2,  USE_ACCEL, USE_LIGHT, USE_ADC)
         if PLOT:
             curves[0].setData(x)
             curves[1].setData(y)
@@ -81,6 +133,8 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
             curves[4].setData(light)
             curves[5].setData(sound)
             curves[7].setData(temp)
+            curves[8].setData(door1)
+            curves[9].setData(door2)
         
         # application that prints the cadence of someone biking       
         if BIKE_CADENCE:
@@ -105,11 +159,13 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
     flight.close()
     soundFile.close()
     tempFile.close()
+    processSession(PORT)
+    print "Exiting {}".format(PORT)
     
 # runs update functions for each sensor used
 # update functions check if data is ready and update the plot ifit is
 #con1 = accel, con2 = light, con3 = sound, con4 = temp
-def plot_update_all(con1, con2, con3, con4, faccel, flight, soundFile, tempFile, t, x, y ,z, light, sound, sound_sum, temp, USE_ACCEL, USE_LIGHT, USE_ADC):
+def plot_update_all(con1, con2, con3, con4, con5, faccel, flight, soundFile, tempFile, doorFile, t, x, y ,z, light, sound, sound_sum, temp, door1, door2, USE_ACCEL, USE_LIGHT, USE_ADC):
     # update accel
     if USE_ACCEL:
         update_accel(con1, faccel, t, x, y, z)
@@ -122,3 +178,4 @@ def plot_update_all(con1, con2, con3, con4, faccel, flight, soundFile, tempFile,
     if USE_ADC:
         update_sound(con3, soundFile, sound, sound_sum)
         update_temp(con4, tempFile, temp)
+        update_door(con5, doorFile, door1, door2)

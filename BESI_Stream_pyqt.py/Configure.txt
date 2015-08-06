@@ -22,7 +22,7 @@ ShimmerID=94:A0
 # Parameters specific to a deployment
 # if PLOT=False, no plots are displayed
 PLOT=True
-numRelayStat=2   
+numRelayStat=1   
 DeploymentID=1
 
 # Parameters per relay station
@@ -37,13 +37,13 @@ USE_LIGHT=True
 USE_ADC=True
 
 #Second Relay Station
-PORT=10003
+PORT=10004
 USE_ACCEL=True
 USE_LIGHT=True
 USE_ADC=True
 
 #Third Relay Station
-PORT=10007
+PORT=10009
 USE_ACCEL=False
 USE_LIGHT=False
 USE_ADC=False

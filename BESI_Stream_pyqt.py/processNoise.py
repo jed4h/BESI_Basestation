@@ -12,7 +12,7 @@ def processSound(soundFile, port, DeploymentID):
         print "Empty Sound File"
         return None
     
-    fname = "data/Ambient Noise{0}_{1}-{2:02}".format(dt.date(), dt.time().hour, dt.time().minute)
+    fname = "data/Ambient Noise{0}_{1}-{2:02}_{3}".format(dt.date(), dt.time().hour, dt.time().minute, DeploymentID)
     
     
     outputFile = open(fname, "w")

@@ -28,7 +28,7 @@ def processTemp(tempFile, port, DeploymentID):
         print "Empty Temperature File"
         return None
     
-    fname = "data/temperature{0}_{1}-{2:02}".format(dt.date(), dt.time().hour, dt.time().minute)
+    fname = "data/temperature{0}_{1}-{2:02}_{3}".format(dt.date(), dt.time().hour, dt.time().minute, DeploymentID)
     outputFile = open(fname, "w")
     
     # write metadata
