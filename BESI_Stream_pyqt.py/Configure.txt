@@ -1,4 +1,4 @@
- +# This file contains the parameters to configure a deployment
+# This file contains the parameters to configure a deployment
 # lines that start with a # are ignored
 # the format for parameters is: <parameter name>=<value>
 
@@ -17,17 +17,22 @@ ySens=83.0
 zSens=83.0
 
 # last four characters in the Shimmer Bluetooth ID
-ShimmerID=94:A0
+ShimmerID_1=94:A0
+ShimmerID_2=94:86
+ShimmerID_3=84:5A
 
 # Parameters specific to a deployment
 # if PLOT=False, no plots are displayed
 PLOT=True
 numRelayStat=1   
 DeploymentID=1
+# amount of data stored in a single file in seconds and days
+fileLengthSec=60
+fileLengthDay=0
 
 # Parameters per relay station
 # The port number also acts as a relay station ID
-# Port numbers should be 4 apart
+# Port numbers should be 5 apart
 # sensors marked as False will be ignored for that relay station
 
 # First Relay station

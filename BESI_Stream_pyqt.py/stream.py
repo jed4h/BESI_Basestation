@@ -21,7 +21,7 @@ plotStartTime = None
 
 # receives data from the BBB using a different socket for each sensor
 # the port number for the accelerometer is given, and the other sockets are consecutive numbers following PORT
-def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = True, ShimmerID = "94:A0", PLOT=True):
+def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = True, ShimmerID1 = "94:A0", ShimmerID2 = "94:A0", ShimmerID3 = "94:A0", PLOT=True, fileLengthSec = 600, fileLengthDay = 0, DeploymentID = 1):
     global faccel
     global soundFile
     global tempFile
@@ -50,7 +50,7 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
     # this uses the same port as the accelerometer and closes it after sending the info
     try:
         connection = connectRecv(PORT)
-        configMsg = "{},{},{},{},".format(USE_ACCEL, USE_ADC, USE_LIGHT, ShimmerID)
+        configMsg = "{},{},{},{},{},{},".format(USE_ACCEL, USE_ADC, USE_LIGHT, ShimmerID1, ShimmerID2, ShimmerID3)
         connection.sendall("{:03}".format(len(configMsg)) + configMsg)
         connection.close()
     except:
@@ -59,13 +59,13 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
     # establish socket connections for each sensor used
     if USE_ACCEL:
         connection = connectRecv(PORT)
-        faccel = open("data/accel{}".format(PORT), "w")
+        faccel = open("Data_Deployment_{}/relay_Station_{}/accel{}".format(DeploymentID, PORT, PORT), "w")
     else:
         connection = None
         
     if USE_LIGHT:
         connection2 = connectRecv(PORT + 1)
-        flight = open("data/light{}".format(PORT + 1), "w")
+        flight = open("Data_Deployment_{}/relay_Station_{}/light{}".format(DeploymentID, PORT, PORT), "w")
     else:
         connection2 = None
         
@@ -73,9 +73,9 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
         connection3 = connectRecv(PORT + 2)
         connection4 = connectRecv(PORT + 3)
         connection5 = connectRecv(PORT + 4)
-        soundFile = open("data/sound{}".format(PORT + 2), "w")
-        tempFile = open("data/temp{}".format(PORT + 3), "w")
-        doorFile = open("data/door{}".format(PORT + 4), "w")
+        soundFile = open("Data_Deployment_{}/relay_Station_{}/sound{}".format(DeploymentID, PORT, PORT), "w")
+        tempFile = open("Data_Deployment_{}/relay_Station_{}/temp{}".format(DeploymentID, PORT, PORT), "w")
+        doorFile = open("Data_Deployment_{}/relay_Station_{}/door{}".format(DeploymentID, PORT, PORT), "w")
     else:
         connection3 = None
         connection4 = None
@@ -97,7 +97,7 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
         global plotStartTime
         
         plotCurrTime = datetime.now()
-        if ((plotCurrTime - plotStartTime).seconds == 100):
+        if ((plotCurrTime - plotStartTime).seconds == fileLengthSec) and ((plotCurrTime - plotStartTime).days == fileLengthDay):
             print "Bingo."
             plotStartTime = datetime.now()
             if USE_ACCEL:
@@ -114,15 +114,15 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
             processSession(PORT)
             
             if USE_ACCEL:
-                faccel = open("data/accel{}".format(PORT), "w")
+                faccel = open("Data_Deployment_{}/relay_Station_{}/accel{}".format(DeploymentID, PORT, PORT), "w")
                 
             if USE_ADC:
-                soundFile = open("data/sound{}".format(PORT + 2), "w")
-                tempFile = open("data/temp{}".format(PORT + 3), "w")
-                doorFile = open("data/door{}".format(PORT + 4), "w")
+                soundFile = open("Data_Deployment_{}/relay_Station_{}/sound{}".format(DeploymentID, PORT, PORT), "w")
+                tempFile = open("Data_Deployment_{}/relay_Station_{}/temp{}".format(DeploymentID, PORT, PORT), "w")
+                doorFile = open("Data_Deployment_{}/relay_Station_{}/door{}".format(DeploymentID, PORT, PORT), "w")
                 
             if USE_LIGHT:
-                flight = open("data/light{}".format(PORT + 1), "w")
+                flight = open("Data_Deployment_{}/relay_Station_{}/light{}".format(DeploymentID, PORT, PORT), "w")
             
         plot_update_all(connection, connection2, connection3, connection4, connection5, faccel, flight, soundFile, tempFile, doorFile, t, x, y ,z, light, sound, sound_sum, temp, door1, door2,  USE_ACCEL, USE_LIGHT, USE_ADC)
         if PLOT:

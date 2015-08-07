@@ -58,9 +58,23 @@ def streamParseConfig():
                 print "Error processing z sensitivity"
             
             try:
-                if splitLine[0] == "ShimmerID":
-                    ShimmerID = splitLine[1].rstrip()
-                    print "ShimmerID: ",ShimmerID
+                if splitLine[0] == "ShimmerID_1":
+                    ShimmerID1 = splitLine[1].rstrip()
+                    print "ShimmerID_1: ",ShimmerID1
+            except:
+                print "Error processing ShimmerID"
+                
+            try:
+                if splitLine[0] == "ShimmerID_2":
+                    ShimmerID2 = splitLine[1].rstrip()
+                    print "ShimmerID_2: ",ShimmerID2
+            except:
+                print "Error processing ShimmerID"
+                
+            try:
+                if splitLine[0] == "ShimmerID_3":
+                    ShimmerID3 = splitLine[1].rstrip()
+                    print "ShimmerID_3: ",ShimmerID3
             except:
                 print "Error processing ShimmerID"
             
@@ -84,6 +98,20 @@ def streamParseConfig():
                     print "deployment ID: ",DeploymentID
             except:
                 print "Error processing deployment ID"
+                
+            try:
+                if splitLine[0] == "fileLengthSec":
+                    fileLengthSec = int(splitLine[1])
+                    print "file length (seconds): ",fileLengthSec
+            except:
+                print "Error processing file length"
+                
+            try:
+                if splitLine[0] == "fileLengthDay":
+                    fileLengthDay = int(splitLine[1])
+                    print "file length (days): ",fileLengthDay
+            except:
+                print "Error processing file length"
              
             
             try:   
@@ -101,4 +129,4 @@ def streamParseConfig():
             except:
                 "Error processing relay station parameters"
                 
-    return ports, useAccel, useLight, useADC, ShimmerID, PLOT, numRelayStat
+    return ports, useAccel, useLight, useADC, ShimmerID1, ShimmerID2, ShimmerID3, PLOT, numRelayStat, fileLengthSec, fileLengthDay, DeploymentID

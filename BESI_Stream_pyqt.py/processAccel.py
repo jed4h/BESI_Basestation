@@ -55,61 +55,7 @@ def calibrateMagnitude(t, x, y, z, calibSession):
         
     return accelMag
   
-# processes timestamps from a file of raw accel. data
-# the raw timestamp is the number of ticks of a 32768 Hz clock that resets to 0 every 2 seconds (16 bit counter)
-# the processed timestamp is the time since the last Bluetooth connection event  
-# the raw timestamps from Shimmer are returned to use to check for corrupted packets
-##############
-##Deprecated##
-##############
-def processTimestampAccel(accelFile, port, DeploymentID):
-    t = []
-    lastTime = 0
-    # initial value needs to be > -640 so the first sample does not look like it is 2 samples after this
-    lastRelTime = -10000
-    startDate =  accelFile.readline()
-    
-    try:
-        dt = datetime.datetime.strptime(startDate.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
-    except:
-        print "Empty Accelerometer File"
-        return None
-   
-    # file name is based on start date and time of session
-    fname = "data/Accelerometer{0}_{1}-{2:02}_{3}".format(dt.date(), dt.time().hour, dt.time().minute, DeploymentID)
-    outputFile = open(fname, "w")
-    
-    outputFile.write(startDate)
-    outputFile.write("Timestamp,X-Axis,Y-Axis,Z-Axis\n")
-    outputFile.write("Deployment ID: {0}, Relay Station ID: {1}\n".format(DeploymentID, port))
-    
-    for line in accelFile:
-        data = line.split(",")
-        try:
-            relTime, xAxis, yAxis, zAxis, nLine = data
-        except: # line is a datetime object or an incomplete line
-            try:
-                datetime.datetime.strptime(line.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
-            except:
-                pass
-            else:
-                # write datetime timestamp
-                outputFile.write(data[0])
-                #print "found a date"
-                # time is reset for each disconnect event
-                lastTime = 0 
-        else:
-            # for each valid data entry, the time stamp is incremented by the time between samples
-            # check for a single missed sample
-            if (int(relTime) == lastRelTime + 2 * TICKS_PER_SAMPLE) or (int(relTime) == lastRelTime + 2 * TICKS_PER_SAMPLE - SHIMMER_TICKS):
-                lastTime = lastTime + 2 * TICK_TIME
-            else:
-                lastTime = lastTime + TICK_TIME
-            t.append(relTime)
-            lastRelTime = int(relTime)
-            outputFile.write("{0:.2f},{1},{2},{3}\n".format(float(lastTime), xAxis, yAxis, zAxis))
-            
-    return fname, t
+
   
 # reads a file of accelerometer data and returns arrays of timestamps, x, y, and z-axes to be plotted
 def plotAccel(inFile):
@@ -157,7 +103,7 @@ def processAccel(accelFile, port, DeploymentID):
         return None, []
    
     # file name is based on start date and time of session
-    fname = "data/Accelerometer{0}_{1}-{2:02}".format(startTime.date(), startTime.time().hour, startTime.time().minute)
+    fname = "Data_Deployment_{0}/Relay_Station_{1}/Accelerometer/Accelerometer{2}_{3}-{4:02}".format(DeploymentID, port, startTime.date(), startTime.time().hour, startTime.time().minute, DeploymentID)
     outputFile = open(fname, "w")
     
     outputFile.write(startDate)
@@ -197,3 +143,60 @@ def processAccel(accelFile, port, DeploymentID):
             outputFile.write("{0:.2f},{1},{2},{3}\n".format(float(lastTime) + timeOffset, int(xAxis), int(yAxis), int(zAxis)))
             
     return fname, rawTime
+
+
+# processes timestamps from a file of raw accel. data
+# the raw timestamp is the number of ticks of a 32768 Hz clock that resets to 0 every 2 seconds (16 bit counter)
+# the processed timestamp is the time since the last Bluetooth connection event  
+# the raw timestamps from Shimmer are returned to use to check for corrupted packets
+##############
+##Deprecated##
+##############
+def processTimestampAccel(accelFile, port, DeploymentID):
+    t = []
+    lastTime = 0
+    # initial value needs to be > -640 so the first sample does not look like it is 2 samples after this
+    lastRelTime = -10000
+    startDate =  accelFile.readline()
+    
+    try:
+        dt = datetime.datetime.strptime(startDate.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
+    except:
+        print "Empty Accelerometer File"
+        return None
+   
+    # file name is based on start date and time of session
+    fname = "Data_Deployment_{0}/Relay_Station_{1}/Accelerometer{2}_{3}-{4:02}".format(DeploymentID, port, dt.date(), dt.time().hour, dt.time().minute, DeploymentID)
+    outputFile = open(fname, "w")
+    
+    outputFile.write(startDate)
+    outputFile.write("Timestamp,X-Axis,Y-Axis,Z-Axis\n")
+    outputFile.write("Deployment ID: {0}, Relay Station ID: {1}\n".format(DeploymentID, port))
+    
+    for line in accelFile:
+        data = line.split(",")
+        try:
+            relTime, xAxis, yAxis, zAxis, nLine = data
+        except: # line is a datetime object or an incomplete line
+            try:
+                datetime.datetime.strptime(line.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
+            except:
+                pass
+            else:
+                # write datetime timestamp
+                outputFile.write(data[0])
+                #print "found a date"
+                # time is reset for each disconnect event
+                lastTime = 0 
+        else:
+            # for each valid data entry, the time stamp is incremented by the time between samples
+            # check for a single missed sample
+            if (int(relTime) == lastRelTime + 2 * TICKS_PER_SAMPLE) or (int(relTime) == lastRelTime + 2 * TICKS_PER_SAMPLE - SHIMMER_TICKS):
+                lastTime = lastTime + 2 * TICK_TIME
+            else:
+                lastTime = lastTime + TICK_TIME
+            t.append(relTime)
+            lastRelTime = int(relTime)
+            outputFile.write("{0:.2f},{1},{2},{3}\n".format(float(lastTime), xAxis, yAxis, zAxis))
+            
+    return fname, t

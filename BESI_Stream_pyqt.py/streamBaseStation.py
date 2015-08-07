@@ -11,14 +11,26 @@ if __name__ == '__main__':
     
     streamingProcs = []
     
-    # use a separate folder to save data files
-    # if the folder does not exist, create it
-    if not os.path.exists("data"):
-        os.mkdir("data")
-    
     # get parameters from the config file  
-    ports, useAccel, useLight, useADC, ShimmerID, PLOT, numRelayStat = streamParseConfig()
+    ports, useAccel, useLight, useADC, ShimmerID1, ShimmerID2, ShimmerID3, PLOT, numRelayStat, fileLengthSec, fileLengthDay, DeploymentID = streamParseConfig()
                
+    # Create a file structure to hold data for this deployment
+    data_folder = "Data_Deployment_{}".format(DeploymentID)
+    if not os.path.exists(data_folder):
+        os.mkdir(data_folder)
+    
+    # Create folders for each sensor
+    for relay_stat in ports:   
+        if not os.path.exists(data_folder + "/" + "Relay_Station_{}/Accelerometer".format(relay_stat)):
+            os.mkdir(data_folder + "/" + "Relay_Station_{}/Accelerometer".format(relay_stat))
+        if not os.path.exists(data_folder + "/" + "Relay_Station_{}/Temperature".format(relay_stat)):
+            os.mkdir(data_folder + "/" + "Relay_Station_{}/Temperature".format(relay_stat))
+        if not os.path.exists(data_folder + "/" + "Relay_Station_{}/Light".format(relay_stat)):
+            os.mkdir(data_folder + "/" + "Relay_Station_{}/Light".format(relay_stat))
+        if not os.path.exists(data_folder + "/" + "Relay_Station_{}/Audio".format(relay_stat)):
+            os.mkdir(data_folder + "/" + "Relay_Station_{}/Audio".format(relay_stat))
+        if not os.path.exists(data_folder + "/" + "Relay_Station_{}/Door".format(relay_stat)):
+            os.mkdir(data_folder + "/" + "Relay_Station_{}/Door".format(relay_stat))
                 
     print "Relay Station IDs: ",ports
     print "Use Accelerometer: ",useAccel
@@ -41,7 +53,7 @@ if __name__ == '__main__':
     # Create a process for each BeagleBone
     try:
         for i in range(numRelayStat):
-            streamingProcs.append(multiprocessing.Process(target = stream.stream_process, args=(ports[i], useAccel[i], useLight[i], useADC[i], ShimmerID, PLOT)))
+            streamingProcs.append(multiprocessing.Process(target = stream.stream_process, args=(ports[i], useAccel[i], useLight[i], useADC[i], ShimmerID1, ShimmerID2, ShimmerID3, PLOT, fileLengthSec, fileLengthDay, DeploymentID)))
     except:
         print "Error reading config file: incorrect parameters for relay stations"
     
