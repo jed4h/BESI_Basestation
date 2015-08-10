@@ -15,22 +15,27 @@ if __name__ == '__main__':
     ports, useAccel, useLight, useADC, ShimmerID1, ShimmerID2, ShimmerID3, PLOT, numRelayStat, fileLengthSec, fileLengthDay, DeploymentID = streamParseConfig()
                
     # Create a file structure to hold data for this deployment
-    data_folder = "Data_Deployment_{}".format(DeploymentID)
+    data_folder = "Data_Deployment_{}/".format(DeploymentID)
     if not os.path.exists(data_folder):
         os.mkdir(data_folder)
+        
+    
     
     # Create folders for each sensor
-    for relay_stat in ports:   
-        if not os.path.exists(data_folder + "/" + "Relay_Station_{}/Accelerometer".format(relay_stat)):
-            os.mkdir(data_folder + "/" + "Relay_Station_{}/Accelerometer".format(relay_stat))
-        if not os.path.exists(data_folder + "/" + "Relay_Station_{}/Temperature".format(relay_stat)):
-            os.mkdir(data_folder + "/" + "Relay_Station_{}/Temperature".format(relay_stat))
-        if not os.path.exists(data_folder + "/" + "Relay_Station_{}/Light".format(relay_stat)):
-            os.mkdir(data_folder + "/" + "Relay_Station_{}/Light".format(relay_stat))
-        if not os.path.exists(data_folder + "/" + "Relay_Station_{}/Audio".format(relay_stat)):
-            os.mkdir(data_folder + "/" + "Relay_Station_{}/Audio".format(relay_stat))
-        if not os.path.exists(data_folder + "/" + "Relay_Station_{}/Door".format(relay_stat)):
-            os.mkdir(data_folder + "/" + "Relay_Station_{}/Door".format(relay_stat))
+    for relay_stat in ports:
+        relay_station_folder = data_folder + "Relay_Station_{}/".format(relay_stat)
+        if not os.path.exists(relay_station_folder):
+            os.mkdir(relay_station_folder)  
+        if not os.path.exists(relay_station_folder + "Accelerometer"):
+            os.mkdir(relay_station_folder + "Accelerometer")
+        if not os.path.exists(relay_station_folder + "Temperature"):
+            os.mkdir(relay_station_folder + "Temperature")
+        if not os.path.exists(relay_station_folder + "Light"):
+            os.mkdir(relay_station_folder + "Light")
+        if not os.path.exists(relay_station_folder + "Audio"):
+            os.mkdir(relay_station_folder + "Audio")
+        if not os.path.exists(relay_station_folder + "Door"):
+            os.mkdir(relay_station_folder + "Door")
                 
     print "Relay Station IDs: ",ports
     print "Use Accelerometer: ",useAccel
