@@ -47,7 +47,7 @@ if __name__ == '__main__':
     try:
         name = socket.gethostbyname_ex(socket.gethostname())[-1][1]
     except:
-        name = socket.gethostbyname_ex(socket.gethostname())[-1][0]
+        name = socket.gethostname()
     try:
         host = socket.gethostbyname(name)
         print "Basestation IP Address: ",host
