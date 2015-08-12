@@ -20,8 +20,9 @@ def processDoor(doorFile, port, DeploymentID):
     
     # write metadata
     outputFile.write(startDate)
-    outputFile.write("Timestamp,Door Sensor Channel1, Door Sensor Channel2\n")
-    outputFile.write("Deployment ID: {0}, Relay Station ID: {1}\n".format(DeploymentID, port + 1))
+    outputFile.write("Deployment ID: {0}, Relay Station ID: {1}\n".format(DeploymentID, port))
+    outputFile.write("Timestamp,Door Sensor Channel 1, Door Sensor Channel 2\n")
+    
     
     for line in doorFile:
         try:

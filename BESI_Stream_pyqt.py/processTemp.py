@@ -33,8 +33,9 @@ def processTemp(tempFile, port, DeploymentID):
     
     # write metadata
     outputFile.write(startDate)
+    outputFile.write("Deployment ID: {0}, Relay Station ID: {1}\n".format(DeploymentID, port))
     outputFile.write("Timestamp,Degree C,Degree F\n")
-    outputFile.write("Deployment ID: {0}, Relay Station ID: {1}\n".format(DeploymentID, port + 3))
+    
     
     for line in tempFile:
         try:

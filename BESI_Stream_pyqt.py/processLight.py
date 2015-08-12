@@ -17,8 +17,9 @@ def processLight(lightFile, port, DeploymentID):
     
     # write metadata
     outputFile.write(startDate)
+    outputFile.write("Deployment ID: {0}, Relay Station ID: {1}\n".format(DeploymentID, port))
     outputFile.write("Timestamp,Light Level\n")
-    outputFile.write("Deployment ID: {0}, Relay Station ID: {1}\n".format(DeploymentID, port + 1))
+    
     
     for line in lightFile:
         try:

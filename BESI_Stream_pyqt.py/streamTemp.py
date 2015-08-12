@@ -23,7 +23,8 @@ def update_temp(connection, outFile, temp):
         
             outlierProb = isOutlier(lowPassFilter(temp), 20)
             if (outlierProb > 0.8):
-                print outlierProb
+                pass
+                #print outlierProb
 
 # parses values for timestamp, degree C, degree F from string in csv format
 # for plotting we only care about the degree F because the time axis is in samples                 

@@ -107,8 +107,9 @@ def processAccel(accelFile, port, DeploymentID):
     outputFile = open(fname, "w")
     
     outputFile.write(startDate)
-    outputFile.write("Timestamp,X-Axis,Y-Axis,Z-Axis\n")
     outputFile.write("Deployment ID: {0}, Relay Station ID: {1}\n".format(DeploymentID, port))
+    outputFile.write("Timestamp,X-Axis,Y-Axis,Z-Axis\n")
+    
     
     # timeOffset is used to correct for periods when the connection is lost
     timeOffset = 0

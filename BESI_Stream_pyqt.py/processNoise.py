@@ -17,8 +17,9 @@ def processSound(soundFile, port, DeploymentID):
     outputFile = open(fname, "w")
     
     outputFile.write(startDate)
+    outputFile.write("Deployment ID: {0}, Relay Station ID: {1}\n".format(DeploymentID, port))
     outputFile.write("Timestamp,Noise Level\n")
-    outputFile.write("Deployment ID: {0}, Relay Station ID: {1}\n".format(DeploymentID, port + 2))
+    
     
     for line in soundFile:
         try:
