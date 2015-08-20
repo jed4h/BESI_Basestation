@@ -222,4 +222,4 @@ def plot_update_all(con1, con2, con3, con4, con5, faccel, flight, soundFile, tem
         if sensorTimeouts[4] == LOST_CONN_TIMEOUT:
             print "Door Message" 
             sensorTimeouts[4] = 0
-        
+

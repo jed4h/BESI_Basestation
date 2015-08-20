@@ -1,24 +1,39 @@
 #Hidden Markov Model to determine room location
 import random
+from generateParameters import *
 
+rooms = ['1', '2', '3', '4']
+connections = [[1, 2], [2, 3], [3, 4]]
 
 num_states = 12
-k1 = 0.7
-k2 = 1-k1
+DSWeight = 0.7
+BTWeight = 1-DSWeight
 PTruePos = 0.95     # probability that door sensor is correctly triggered
 PFalsePos = 0.01    # probability that door sensor gives a false positive
 PBTSameRoom = 0.25     # probability that the Bluetooth is connected to the relay station in the same room
 PBTCloseRoom = 0.25   # probability that bluetooth  is connected to the relay station in a neighboring room
 emission_probability = [{},{}]
 
-states = ('12', '13', '14', '21', '23', '24', '31', '32', '34', '41', '42', '43')
+states = generateStates(rooms)
+
+#states = ('12', '13', '14', '21', '23', '24', '31', '32', '34', '41', '42', '43')
  
 observations = [['d12', 'c1'], ['d23', 'c1'], ['d34', 'c3'], ['d43', 'c3'], ['d32', 'c3'], ['d21', 'c1'], ['d12', 'c1'], ['d23', 'c1'], ['d34', 'c3'], ['d43', 'c3'], ['d32', 'c3'], ['d21', 'c1']]
- 
+
+start_probability = generateStartProb(states)
+transition_probability = generateTransProb(states, connections)
+emission_probability = generateEmmProb(states, connections)
+
+#print start_probability
+#print transition_probability
+#print emission_probability
+
+""" 
 start_probability = {'12': 1.0/num_states, '13': 1.0/num_states, '21': 1.0/num_states, 
                      '23': 1.0/num_states, '31': 1.0/num_states, '32': 1.0/num_states, 
                      '14': 1.0/num_states, '24': 1.0/num_states, '34': 1.0/num_states, 
                      '41': 1.0/num_states, '42': 1.0/num_states, '43': 1.0/num_states}
+
  
 transition_probability = {
    '12' : {'12': 1.0/2, '13': 0, '14':0, '21': 1.0/2, '23': 0.01, '24':0.01, '31': 0, '32': 0, '34':0, '41':0, '42':0, '43':0},
@@ -49,7 +64,7 @@ emission_probability[0] = {
    '42' : {'d12': PFalsePos, 'd13': PFalsePos, 'd21': PFalsePos, 'd23': PFalsePos, 'd31': PFalsePos, 'd32': PFalsePos, 'd14': PFalsePos, 'd24': PFalsePos, 'd34': PFalsePos, 'd41': PFalsePos, 'd42': PTruePos, 'd43': PFalsePos},
    '43' : {'d12': PFalsePos, 'd13': PFalsePos, 'd21': PFalsePos, 'd23': PFalsePos, 'd31': PFalsePos, 'd32': PFalsePos, 'd14': PFalsePos, 'd24': PFalsePos, 'd34': PFalsePos, 'd41': PFalsePos, 'd42': PFalsePos, 'd43': PTruePos}     
    }
-
+"""
 emission_probability[1] = {
    '12' : {'c1': PBTCloseRoom, 'c2': PBTSameRoom, 'c3': PBTCloseRoom, 'c4': PBTCloseRoom},
    '13' : {'c1': PBTCloseRoom, 'c2': PBTCloseRoom, 'c3': PBTSameRoom, 'c4': PBTCloseRoom},
@@ -100,13 +115,13 @@ def print_dptable(V):
         s += "%.5s: " % y
         s += " ".join("%.7s" % ("%f" % v[y]) for v in V)
         s += "\n"
-    print(s)
+    #print(s)
 
-for obs in observations:
-    if random.uniform(0,1) < 0.05:
-        observations.remove(obs)
-        
-print len(observations)
+#for obs in observations:
+#    if random.uniform(0,1) < 0.05:
+#        observations.remove(obs)
+#        
+#print len(observations)
  
 def example():
     return viterbi(observations,
