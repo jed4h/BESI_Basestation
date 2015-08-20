@@ -79,6 +79,7 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
     else:
         connection3 = None
         connection4 = None
+        connection5 = None
     
     
     app = QtGui.QApplication([])
