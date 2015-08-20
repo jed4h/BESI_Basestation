@@ -29,3 +29,7 @@ def update_light(connection, outFile, light):
         split_data = parse_light(data)
         if split_data != None:
             append_fixed_size(light, float(split_data), 200)
+            
+        return 0
+    else:
+        return 1

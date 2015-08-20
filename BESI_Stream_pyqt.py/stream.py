@@ -18,6 +18,7 @@ tempFile = None
 doorFile = None
 flight = None
 plotStartTime = None
+sensorTimeouts = [0] * 5 #tracks time since last packet received for each sensor
 
 # receives data from the BBB using a different socket for each sensor
 # the port number for the accelerometer is given, and the other sockets are consecutive numbers following PORT
@@ -28,6 +29,7 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
     global doorFile
     global flight
     global plotStartTime
+    global sensorTimeouts
     t = []
     x = []
     y = []
@@ -38,6 +40,7 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
     sound_sum = []
     door1 = []
     door2 = []
+    
    
     # write start time
     # Now done in stream when data is first received
@@ -79,6 +82,7 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
     else:
         connection3 = None
         connection4 = None
+        connection5 = None
     
     
     app = QtGui.QApplication([])
@@ -95,6 +99,7 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
         global doorFile
         global flight
         global plotStartTime
+        global sensorTimeouts
         
         plotCurrTime = datetime.now()
         if ((plotCurrTime - plotStartTime).seconds == fileLengthSec) and ((plotCurrTime - plotStartTime).days == fileLengthDay):
@@ -124,7 +129,7 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
             if USE_LIGHT:
                 flight = open("Data_Deployment_{}/relay_Station_{}/light{}".format(DeploymentID, PORT, PORT), "w")
             
-        plot_update_all(connection, connection2, connection3, connection4, connection5, faccel, flight, soundFile, tempFile, doorFile, t, x, y ,z, light, sound, sound_sum, temp, door1, door2,  USE_ACCEL, USE_LIGHT, USE_ADC)
+        plot_update_all(connection, connection2, connection3, connection4, connection5, faccel, flight, soundFile, tempFile, doorFile, t, x, y ,z, light, sound, sound_sum, temp, door1, door2, sensorTimeouts, USE_ACCEL, USE_LIGHT, USE_ADC)
         if PLOT:
             curves[0].setData(x)
             curves[1].setData(y)
@@ -165,17 +170,56 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
 # runs update functions for each sensor used
 # update functions check if data is ready and update the plot ifit is
 #con1 = accel, con2 = light, con3 = sound, con4 = temp
-def plot_update_all(con1, con2, con3, con4, con5, faccel, flight, soundFile, tempFile, doorFile, t, x, y ,z, light, sound, sound_sum, temp, door1, door2, USE_ACCEL, USE_LIGHT, USE_ADC):
+def plot_update_all(con1, con2, con3, con4, con5, faccel, flight, soundFile, tempFile, doorFile, t, x, y ,z, light, sound, sound_sum, temp, door1, door2, sensorTimeouts, USE_ACCEL, USE_LIGHT, USE_ADC):
+    # sensorTimeouts is used to to check if no messages have been received about a particular sensor for a period of time 
+    # every time update_<sensor> is called and there is no data waiting sensorTimeout is incremented. When sensorTimeout reaches somethreshold, an alert is triggered
     # update accel
     if USE_ACCEL:
-        update_accel(con1, faccel, t, x, y, z)
+        if (update_accel(con1, faccel, t, x, y, z) == 1):
+            sensorTimeouts[0] = sensorTimeouts[0] + 1
+            
+        else:
+            sensorTimeouts[0] = 0
+            
+        if sensorTimeouts[0] == LOST_CONN_TIMEOUT:
+            print "Accel Message",datetime.now()
+            sensorTimeouts[0] = 0
         
     # update light
     if USE_LIGHT:
-        update_light(con2, flight, light)
+        if (update_light(con2, flight, light) == 1):
+            sensorTimeouts[1] = sensorTimeouts[1] + 1
+            
+        else:
+            sensorTimeouts[1] = 0
+            
+        if sensorTimeouts[1] == LOST_CONN_TIMEOUT:
+            print "Light Message"
+            sensorTimeouts[1] = 0
         
     # update ADC (noise and temp)
     if USE_ADC:
-        update_sound(con3, soundFile, sound, sound_sum)
-        update_temp(con4, tempFile, temp)
-        update_door(con5, doorFile, door1, door2)
+        if (update_sound(con3, soundFile, sound, sound_sum) == 1):
+            sensorTimeouts[2] = sensorTimeouts[2] + 1   
+        else:
+            sensorTimeouts[2] = 0
+        if sensorTimeouts[2] == LOST_CONN_TIMEOUT:
+            print "Sound Message"
+            sensorTimeouts[2] = 0
+            
+        if (update_temp(con4, tempFile, temp) == 1):
+            sensorTimeouts[3] = sensorTimeouts[3] + 1
+        else:
+            sensorTimeouts[3] = 0 
+        if sensorTimeouts[3] == LOST_CONN_TIMEOUT:
+            print "Temperature Message"
+            sensorTimeouts[3] = 0
+            
+        if (update_door(con5, doorFile, door1, door2) == 1):
+            sensorTimeouts[4] = sensorTimeouts[4] + 1 
+        else:
+            sensorTimeouts[4] = 0 
+        if sensorTimeouts[4] == LOST_CONN_TIMEOUT:
+            print "Door Message" 
+            sensorTimeouts[4] = 0
+        

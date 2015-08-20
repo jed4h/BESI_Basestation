@@ -1,7 +1,8 @@
 from streamUtils import *
 from parameters import *
 
-# check if sound data is ready    
+# check if sound data is ready
+# return 0 if data read, 1 otherwise
 def update_sound(connection, outFile, sound, sound_sum):
     # each packet is 23 bytes
     data = recv_nonblocking(connection, 5 * MIC_PACKET_SIZE)
@@ -25,6 +26,11 @@ def update_sound(connection, outFile, sound, sound_sum):
                 to_avg = sound[len(sound) - 100:]
                 
             append_fixed_size(sound_sum, float(moving_avg(to_avg)), 1000)
+            
+        return 0
+    
+    else:
+        return 1
             
 # parses values for timestamp, noise level from string in csv format
 # for plotting we only care about the noise level because the time axis is in samples

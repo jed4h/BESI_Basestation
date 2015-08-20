@@ -5,6 +5,7 @@ from datetime import datetime
 
 
 # check if accelerometer data is ready
+# return 0 if data read, 1 otherwise
 def update_accel(connection, outFile, t, x, y, z):
     # each accelerometer packet is 22 bytes long
     # check if 10 packets are ready
@@ -42,6 +43,11 @@ def update_accel(connection, outFile, t, x, y, z):
                 outFile.write(str(datetime.now()) + '\n')
         except:
             pass    
+        
+        return 0
+    
+    else:
+        return 1
        
 
 # parses values for timestamp, x-axis, y-axis, and z-axis from string in csv format            

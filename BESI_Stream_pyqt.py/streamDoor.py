@@ -1,7 +1,8 @@
 from streamUtils import *
 from parameters import *
 
-# check if sound data is ready    
+# check if door sensor data is ready
+# return 0 if data read, 1 otherwise 
 def update_door(connection, outFile, door1, door2):
     # each packet is 23 bytes
     data = recv_nonblocking(connection, DOOR_PACKET_SIZE)
@@ -19,6 +20,11 @@ def update_door(connection, outFile, door1, door2):
             # noise data is plotted over 1000 samples = 10 seconds
             append_fixed_size(door1, split_data[0], 1000)
             append_fixed_size(door2, split_data[1], 1000)
+            
+        return 0
+    
+    else:
+        return 1
 
             
 # parses values for timestamp, noise level from string in csv format

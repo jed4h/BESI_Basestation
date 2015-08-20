@@ -3,7 +3,8 @@ from parameters import *
 from kernel_test import isOutlier
 from processTemp import lowPassFilter
 
-# check if temperature data is ready    
+# check if temperature data is ready
+# return 0 if data read, 1 otherwise
 def update_temp(connection, outFile, temp):
     # size of a temperature data packet is 20 bytes
     data = recv_nonblocking(connection, TEMP_PACKET_SIZE)
@@ -25,6 +26,12 @@ def update_temp(connection, outFile, temp):
             if (outlierProb > 0.8):
                 pass
                 #print outlierProb
+                
+        return 0
+    
+    else:
+        return 1
+    
 
 # parses values for timestamp, degree C, degree F from string in csv format
 # for plotting we only care about the degree F because the time axis is in samples                 

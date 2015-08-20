@@ -9,7 +9,8 @@ TEMP_PACKET_SIZE = 20
 MIC_PACKET_SIZE = 24
 DOOR_PACKET_SIZE = 31
 LIGHT_PACKET_SIZE = 25
-CORRUPTED_COUNT = 16                                    # corrupted transmission
+CORRUPTED_COUNT = 16                                 # corrupted transmission
+LOST_CONN_TIMEOUT = 1000                                # 1000 = ~5.5 seconds with not data
 
 # Parameters per relay station
 # The port number also acts as a relay station ID
