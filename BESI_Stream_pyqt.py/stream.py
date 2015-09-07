@@ -175,6 +175,19 @@ def plot_update_all(con1, con2, con3, con4, con5, faccel, flight, soundFile, tem
     # every time update_<sensor> is called and there is no data waiting sensorTimeout is incremented. When sensorTimeout reaches somethreshold, an alert is triggered
     # update accel
     if USE_ACCEL:
+        update_accel(con1, faccel, t, x, y, z)
+         
+    # update light
+    if USE_LIGHT:
+        update_light(con2, flight, light)
+
+    # update ADC (noise and temp)
+    if USE_ADC:
+        update_sound(con3, soundFile, sound, sound_sum)
+        update_temp(con4, tempFile, temp)
+        update_door(con5, doorFile, door1, door2)
+    """
+    if USE_ACCEL:
         if (update_accel(con1, faccel, t, x, y, z) == 1):
             sensorTimeouts[0] = sensorTimeouts[0] + 1
             
@@ -182,7 +195,7 @@ def plot_update_all(con1, con2, con3, con4, con5, faccel, flight, soundFile, tem
             sensorTimeouts[0] = 0
             
         if sensorTimeouts[0] == LOST_CONN_TIMEOUT:
-            print "Accel Message",datetime.now()
+            #print "Accel Message",datetime.now()
             sensorTimeouts[0] = 0
         
     # update light
@@ -194,7 +207,7 @@ def plot_update_all(con1, con2, con3, con4, con5, faccel, flight, soundFile, tem
             sensorTimeouts[1] = 0
             
         if sensorTimeouts[1] == LOST_CONN_TIMEOUT:
-            print "Light Message"
+            #print "Light Message"
             sensorTimeouts[1] = 0
         
     # update ADC (noise and temp)
@@ -204,7 +217,7 @@ def plot_update_all(con1, con2, con3, con4, con5, faccel, flight, soundFile, tem
         else:
             sensorTimeouts[2] = 0
         if sensorTimeouts[2] == LOST_CONN_TIMEOUT:
-            print "Sound Message"
+            #print "Sound Message"
             sensorTimeouts[2] = 0
             
         if (update_temp(con4, tempFile, temp) == 1):
@@ -212,7 +225,7 @@ def plot_update_all(con1, con2, con3, con4, con5, faccel, flight, soundFile, tem
         else:
             sensorTimeouts[3] = 0 
         if sensorTimeouts[3] == LOST_CONN_TIMEOUT:
-            print "Temperature Message"
+            #print "Temperature Message"
             sensorTimeouts[3] = 0
             
         if (update_door(con5, doorFile, door1, door2) == 1):
@@ -220,6 +233,7 @@ def plot_update_all(con1, con2, con3, con4, con5, faccel, flight, soundFile, tem
         else:
             sensorTimeouts[4] = 0 
         if sensorTimeouts[4] == LOST_CONN_TIMEOUT:
-            print "Door Message" 
+            #print "Door Message" 
             sensorTimeouts[4] = 0
+            """
 
