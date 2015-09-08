@@ -103,7 +103,7 @@ def processAccel(accelFile, port, DeploymentID):
         return None, []
    
     # file name is based on start date and time of session
-    fname = "Data_Deployment_{0}/Relay_Station_{1}/Accelerometer/Accelerometer{2}_{3}-{4:02}".format(DeploymentID, port, startTime.date(), startTime.time().hour, startTime.time().minute, DeploymentID)
+    fname = "Data_Deployment_{0}/Relay_Station_{1}/Accelerometer/Accelerometer{2}_{3:02}-{4:02}".format(DeploymentID, port, startTime.date(), startTime.time().hour, startTime.time().minute, DeploymentID)
     outputFile = open(fname, "w")
     
     outputFile.write(startDate)
