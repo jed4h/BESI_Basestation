@@ -9,6 +9,7 @@ from processAccel import plotAccel
 from processLight import plotLight
 from processNoise import plotNoise
 from processTemp import plotTemp, lowPassFilter
+from processDoor import plotDoor
 import Tkinter as tk
 import tkFileDialog
 from os import listdir
@@ -23,6 +24,9 @@ tsound_data = []
 sound_data = []
 tTemp_data = []
 temp_data = []
+tdoor_data = []
+door1_data = []
+door2_data = []
 
 root = tk.Tk()
 root.withdraw()
@@ -90,6 +94,21 @@ for fileName in  listdir(basePath + "Temperature"):
         temp_data.append(tempValue)
         
     tempProcFile.close()
+    
+for fileName in  listdir(basePath + "Door"):
+    doorProcFile = open(basePath + "Door/" + fileName, "r")
+    tdoor_data_tmp, door1_data_tmp, door2_data_tmp = plotDoor(doorProcFile)
+    
+    for tValue in tdoor_data_tmp:
+        tdoor_data.append(tValue)
+    
+    for doorValue in door1_data_tmp:
+        door1_data.append(doorValue)
+        
+    for doorValue in door2_data_tmp:
+        door2_data.append(doorValue)
+        
+    doorProcFile.close()
 
 # if the file = None, the raw data file was empty
 
@@ -161,6 +180,12 @@ p4 = win.addPlot(title="Ambient Noise Data")
 p4.setLabel('left', "Noise Amplitude over 0.1s of data", units='V')
 p4.setLabel('bottom', "Time", units='s')
 p4.plot(tsound_data, sound_data, pen=(255,0,0), name="Filtered")
+
+p5 = win.addPlot(title="Door Sensor Data")
+p5.setLabel('left', "Raw Door Sensor", units='')
+p5.setLabel('bottom', "Time", units='s')
+p5.plot(tdoor_data ,door1_data, pen=(255,0,0), name="Filtered")
+p5.plot(tdoor_data ,door2_data, pen=(0,255,0), name="Filtered")
 
 
 
