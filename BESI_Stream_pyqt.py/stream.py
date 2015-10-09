@@ -103,7 +103,6 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
         
         plotCurrTime = datetime.now()
         if ((plotCurrTime - plotStartTime).seconds == fileLengthSec) and ((plotCurrTime - plotStartTime).days == fileLengthDay):
-            print "Bingo."
             plotStartTime = datetime.now()
             if USE_ACCEL:
                 faccel.close()
@@ -159,7 +158,7 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
     # cleanup: close files and write end time to accel file
     # I don't think this code is ever called
     # TODO: find a way to close the files when done
-    faccel.write(str(datetime.now()) + '\n')
+    #faccel.write(str(datetime.now()) + '\n')
     faccel.close()
     flight.close()
     soundFile.close()

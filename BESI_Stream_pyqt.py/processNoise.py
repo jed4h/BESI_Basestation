@@ -4,6 +4,7 @@ from datetime import datetime
 # this function simply copies data and removes leading 0s 
 def processSound(soundFile, port, DeploymentID):
     startDate =  soundFile.readline()
+    empty = False
     
     # if the basestation gets any streaming data, the first line is a date and time
     try:
@@ -19,7 +20,6 @@ def processSound(soundFile, port, DeploymentID):
     outputFile.write(startDate)
     outputFile.write("Deployment ID: {0}, Relay Station ID: {1}\n".format(DeploymentID, port))
     outputFile.write("Timestamp,Noise Level\n")
-    
     
     for line in soundFile:
         try:

@@ -18,6 +18,7 @@ def lowPassFilter(unfilteredData):
 # (in previous version the timestamp was the time since the last sample)
 def processTemp(tempFile, port, DeploymentID):
     lastTime = 0.0
+    empty = False
     #first line is the start date/time of the data collection
     startDate =  tempFile.readline()
     
@@ -35,7 +36,6 @@ def processTemp(tempFile, port, DeploymentID):
     outputFile.write(startDate)
     outputFile.write("Deployment ID: {0}, Relay Station ID: {1}\n".format(DeploymentID, port))
     outputFile.write("Timestamp,Degree C,Degree F\n")
-    
     
     for line in tempFile:
         try:

@@ -7,6 +7,7 @@ from datetime import datetime
 # this function simply copies data and removes leading 0s         
 def processDoor(doorFile, port, DeploymentID):
     startDate =  doorFile.readline()
+    empty = False
     
     # if the basestation gets any streaming data, the first line is a date and time
     try:
@@ -22,7 +23,6 @@ def processDoor(doorFile, port, DeploymentID):
     outputFile.write(startDate)
     outputFile.write("Deployment ID: {0}, Relay Station ID: {1}\n".format(DeploymentID, port))
     outputFile.write("Timestamp,Door Sensor Channel 1, Door Sensor Channel 2\n")
-    
     
     for line in doorFile:
         try:

@@ -56,7 +56,11 @@ for fileName in  listdir(basePath + "Accelerometer"):
     for zValue in z_data_tmp:
         z_data.append(zValue)
     
-    accelLastTime = taccel_data[-1]
+    try:
+        accelLastTime = taccel_data[-1]
+    except:
+        accelLastTime = 0
+        
     accelProcFile.close()
     
 for fileName in  listdir(basePath + "Light"):
@@ -136,6 +140,7 @@ win.setWindowTitle('BESI Data from Last Saved Session')
 # Enable antialiasing for prettier plots
 pg.setConfigOptions(antialias=True)
 
+"""
 # Accel Plot
 p1 = win.addPlot(title="Accelerometer Data")
 p1.setLabel('left', "Uncalibrated Accelerometer", units='')
@@ -143,13 +148,16 @@ p1.setLabel('bottom', "Time", units='s')
 p1.plot(taccel_data ,x_data, pen=(255,0,0), name="Filtered")
 p1.plot(taccel_data ,y_data, pen=(0,255,0), name="Filtered")
 p1.plot(taccel_data ,z_data, pen=(0,0,255), name="Filtered")
+"""
 
+"""
 # plot temperature
 p2 = win.addPlot(title="Temperature Data")
 p2.setLabel('left', "Temperature (raw and LPF)", units='Degree F')
 p2.setLabel('bottom', "Time", units='s')
 p2.plot(tTemp_data, lowPassFilter(lowPassFilter(temp_data)), pen=(0,255,0), name="Filtered")
 #p4.plot(tTemp_data, temp_data, pen=(0,0,255), name="Unfiltered")
+
 
 win.nextRow()
 tmpDelta = []
@@ -179,15 +187,13 @@ p3.plot(tlight_data, light_data, pen=(0,255,0), name="Filtered")
 p4 = win.addPlot(title="Ambient Noise Data")
 p4.setLabel('left', "Noise Amplitude over 0.1s of data", units='V')
 p4.setLabel('bottom', "Time", units='s')
-p4.plot(tsound_data, sound_data, pen=(255,0,0), name="Filtered")
-
+p4.plot(tsound_data[:500000], sound_data[:500000], pen=(255,0,0), name="Filtered")
+"""
 p5 = win.addPlot(title="Door Sensor Data")
 p5.setLabel('left', "Raw Door Sensor", units='')
 p5.setLabel('bottom', "Time", units='s')
 p5.plot(tdoor_data ,door1_data, pen=(255,0,0), name="Filtered")
 p5.plot(tdoor_data ,door2_data, pen=(0,255,0), name="Filtered")
-
-
 
 
 ## Start Qt event loop unless running in interactive mode or using pyside.

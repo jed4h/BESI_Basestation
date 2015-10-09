@@ -90,6 +90,7 @@ def plotAccel(inFile):
 def processAccel(accelFile, port, DeploymentID):
     rawTime = []
     lastTime = 0
+    empty = True
     
     # initial value needs to be > -640 so the first sample does not look like it is 2 samples after this
     lastRelTime = -10000
@@ -110,11 +111,11 @@ def processAccel(accelFile, port, DeploymentID):
     outputFile.write("Deployment ID: {0}, Relay Station ID: {1}\n".format(DeploymentID, port))
     outputFile.write("Timestamp,X-Axis,Y-Axis,Z-Axis\n")
     
-    
     # timeOffset is used to correct for periods when the connection is lost
     timeOffset = 0
     
     for line in accelFile:
+        empty = False
         data = line.split(",")
         try:
             relTime, xAxis, yAxis, zAxis, nLine = data
@@ -142,6 +143,9 @@ def processAccel(accelFile, port, DeploymentID):
             rawTime.append(relTime)
             lastRelTime = int(relTime)
             outputFile.write("{0:.2f},{1},{2},{3}\n".format(float(lastTime) + timeOffset, int(xAxis), int(yAxis), int(zAxis)))
+            
+    if empty:
+        outputFile.write("{0:.2f},{1},{2},{3}\n".format(0, 0, 0, 0))
             
     return fname, rawTime
 
