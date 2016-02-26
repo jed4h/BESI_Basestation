@@ -11,7 +11,7 @@ from streamTemp import update_temp
 from streamDoor import update_door
 from processSession import processSession
 
-
+# initialize file names so they can be accessed in the update() function
 faccel = None
 soundFile = None
 tempFile = None
@@ -19,10 +19,15 @@ doorFile = None
 flight = None
 plotStartTime = None
 sensorTimeouts = [0] * 5 #tracks time since last packet received for each sensor
+# connection status indicator:
+# 0 - disconnected
+# 1 - connection in progress
+# 2 - connected
+connected = 0
 
 # receives data from the BBB using a different socket for each sensor
 # the port number for the accelerometer is given, and the other sockets are consecutive numbers following PORT
-def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = True, ShimmerID1 = "94:A0", ShimmerID2 = "94:A0", ShimmerID3 = "94:A0", PLOT=True, fileLengthSec = 600, fileLengthDay = 0, DeploymentID = 1):
+def stream_process(commQueue = None, PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = True, ShimmerIDs = [None, None, None], PLOT=True, fileLengthSec = 600, fileLengthDay = 0, DeploymentID = 1):
     global faccel
     global soundFile
     global tempFile
@@ -30,6 +35,7 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
     global flight
     global plotStartTime
     global sensorTimeouts
+    global connected
     t = []
     x = []
     y = []
@@ -40,6 +46,14 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
     sound_sum = []
     door1 = []
     door2 = []
+    
+    #
+    global connection
+    global connection2
+    global connection3
+    global connection4
+    global connection5
+    
     
    
     # write start time
@@ -53,7 +67,7 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
     # this uses the same port as the accelerometer and closes it after sending the info
     try:
         connection = connectRecv(PORT)
-        configMsg = "{},{},{},{},{},{},".format(USE_ACCEL, USE_ADC, USE_LIGHT, ShimmerID1, ShimmerID2, ShimmerID3)
+        configMsg = "{},{},{},{},{},{},".format(USE_ACCEL, USE_ADC, USE_LIGHT, ShimmerIDs[0], ShimmerIDs[1], ShimmerIDs[2])
         connection.sendall("{:03}".format(len(configMsg)) + configMsg)
         connection.close()
     except:
@@ -84,7 +98,7 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
         connection4 = None
         connection5 = None
     
-    
+    connected = 2
     app = QtGui.QApplication([])
     if PLOT:
         win, curves = init_plot(PORT)
@@ -93,6 +107,7 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
     
     # update is called every 5 ms and updates the data for each plot
     def update():
+        global connected
         global faccel
         global soundFile
         global tempFile
@@ -100,10 +115,18 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
         global flight
         global plotStartTime
         global sensorTimeouts
+        global connection
+        global connection2
+        global connection3
+        global connection4
+        global connection5
         
         plotCurrTime = datetime.now()
-        if ((plotCurrTime - plotStartTime).seconds == fileLengthSec) and ((plotCurrTime - plotStartTime).days == fileLengthDay):
+        # periodically process the raw data received and open new raw data files (old ones are deleted)
+        if (((plotCurrTime - plotStartTime).seconds == fileLengthSec) and ((plotCurrTime - plotStartTime).days == fileLengthDay) or connected == 0):
             plotStartTime = datetime.now()
+            
+            # close files
             if USE_ACCEL:
                 faccel.close()
                 
@@ -115,8 +138,10 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
             if USE_LIGHT:
                 flight.close()
             
+            # process data (result is written to new files)
             processSession(PORT)
             
+            # open new files that overwrite old temporary files
             if USE_ACCEL:
                 faccel = open("Data_Deployment_{}/relay_Station_{}/accel{}".format(DeploymentID, PORT, PORT), "w")
                 
@@ -127,24 +152,64 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
                 
             if USE_LIGHT:
                 flight = open("Data_Deployment_{}/relay_Station_{}/light{}".format(DeploymentID, PORT, PORT), "w")
-            
-        plot_update_all(connection, connection2, connection3, connection4, connection5, faccel, flight, soundFile, tempFile, doorFile, t, x, y ,z, light, sound, sound_sum, temp, door1, door2, sensorTimeouts, USE_ACCEL, USE_LIGHT, USE_ADC)
-        if PLOT:
-            curves[0].setData(x)
-            curves[1].setData(y)
-            curves[2].setData(z)
-            curves[3].setData(t)
-            curves[4].setData(light)
-            curves[5].setData(sound)
-            curves[7].setData(temp)
-            curves[8].setData(door1)
-            curves[9].setData(door2)
         
-        # application that prints the cadence of someone biking       
-        if BIKE_CADENCE:
-            # intervals is meaningless because only raw timestamps are available
-            pedal_count, intervals = peakDetection(x[120:], y[120:], t[120:])
-            print pedal_count
+        # if connection is lost, wait set up the port to listen for the reconnect from the relay station
+        if connected == 0:
+            connected = 1
+            try:
+                connection = connectRecv(PORT)
+                configMsg = "{},{},{},{},{},{},".format(USE_ACCEL, USE_ADC, USE_LIGHT, ShimmerIDs[0], ShimmerIDs[1], ShimmerIDs[2])
+                connection.sendall("{:03}".format(len(configMsg)) + configMsg)
+                connection.close()
+            except:
+                pass
+            
+            # establish socket connections for each sensor used
+            if USE_ACCEL:
+                connection = connectRecv(PORT)
+                faccel = open("Data_Deployment_{}/relay_Station_{}/accel{}".format(DeploymentID, PORT, PORT), "w")
+            else:
+                connection = None
+                
+            if USE_LIGHT:
+                connection2 = connectRecv(PORT + 1)
+                flight = open("Data_Deployment_{}/relay_Station_{}/light{}".format(DeploymentID, PORT, PORT), "w")
+            else:
+                connection2 = None
+                
+            if USE_ADC:
+                connection3 = connectRecv(PORT + 2)
+                connection4 = connectRecv(PORT + 3)
+                connection5 = connectRecv(PORT + 4)
+                soundFile = open("Data_Deployment_{}/relay_Station_{}/sound{}".format(DeploymentID, PORT, PORT), "w")
+                tempFile = open("Data_Deployment_{}/relay_Station_{}/temp{}".format(DeploymentID, PORT, PORT), "w")
+                doorFile = open("Data_Deployment_{}/relay_Station_{}/door{}".format(DeploymentID, PORT, PORT), "w")
+            else:
+                connection3 = None
+                connection4 = None
+                connection5 = None
+            
+            connected = 2
+            
+            
+        if connected == 2:  
+            plot_update_all(commQueue, connection, connection2, connection3, connection4, connection5, faccel, flight, soundFile, tempFile, doorFile, t, x, y ,z, light, sound, sound_sum, temp, door1, door2, sensorTimeouts, USE_ACCEL, USE_LIGHT, USE_ADC, PORT)
+            if PLOT:
+                curves[0].setData(x)
+                curves[1].setData(y)
+                curves[2].setData(z)
+                curves[3].setData(t)
+                curves[4].setData(light)
+                curves[5].setData(sound)
+                curves[7].setData(temp)
+                curves[8].setData(door1)
+                curves[9].setData(door2)
+            
+            # application that prints the cadence of someone biking       
+            #if BIKE_CADENCE:
+                # intervals is meaningless because only raw timestamps are available
+                #pedal_count, intervals = peakDetection(x[120:], y[120:], t[120:])
+                #print pedal_count
     
     # set up a timer to run update() every 5 ms   
     timer1 = QtCore.QTimer()
@@ -163,16 +228,19 @@ def stream_process(PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = Tr
     flight.close()
     soundFile.close()
     tempFile.close()
+    doorFile.close()
     processSession(PORT)
     print "Exiting {}".format(PORT)
     
 # runs update functions for each sensor used
 # update functions check if data is ready and update the plot ifit is
 #con1 = accel, con2 = light, con3 = sound, con4 = temp
-def plot_update_all(con1, con2, con3, con4, con5, faccel, flight, soundFile, tempFile, doorFile, t, x, y ,z, light, sound, sound_sum, temp, door1, door2, sensorTimeouts, USE_ACCEL, USE_LIGHT, USE_ADC):
+def plot_update_all(q, con1, con2, con3, con4, con5, faccel, flight, soundFile, tempFile, doorFile, t, x, y ,z, light, sound, sound_sum, temp, door1, door2, sensorTimeouts, USE_ACCEL, USE_LIGHT, USE_ADC, PORT):
     # sensorTimeouts is used to to check if no messages have been received about a particular sensor for a period of time 
-    # every time update_<sensor> is called and there is no data waiting sensorTimeout is incremented. When sensorTimeout reaches somethreshold, an alert is triggered
+    # every time update_<sensor> is called and there is no data waiting sensorTimeout is incremented. When sensorTimeout reaches some threshold, an alert is triggered
     # update accel
+    global connected
+    """
     if USE_ACCEL:
         update_accel(con1, faccel, t, x, y, z)
          
@@ -193,10 +261,49 @@ def plot_update_all(con1, con2, con3, con4, con5, faccel, flight, soundFile, tem
         else:
             sensorTimeouts[0] = 0
             
-        if sensorTimeouts[0] == LOST_CONN_TIMEOUT:
-            #print "Accel Message",datetime.now()
+        if sensorTimeouts[0] == 10 * LOST_CONN_TIMEOUT:
+            #q.put(["{0} no connection from shimmer".format(PORT)])
             sensorTimeouts[0] = 0
         
+    
+               
+    # update ADC (noise and temp)
+    if USE_ADC:
+        if (update_sound(con3, soundFile, sound) == 1):
+            sensorTimeouts[2] = sensorTimeouts[2] + 1   
+        else:
+            sensorTimeouts[2] = 0
+        if sensorTimeouts[2] == 10 * LOST_CONN_TIMEOUT:
+            #q.put(["{0} no data from microphone".format(PORT)])
+            sensorTimeouts[2] = 0
+            
+        if (update_temp(con4, tempFile, temp) == 1):
+            sensorTimeouts[3] = sensorTimeouts[3] + 1
+        else:
+            sensorTimeouts[3] = 0 
+        if sensorTimeouts[3] == LOST_CONN_TIMEOUT:
+            #q.put(["{0} no data from temperature sensor".format(PORT)])
+            sensorTimeouts[3] = 0
+            #############################################################
+            #Reset if connection lost (use light sensor to measure this)#
+            #############################################################
+            connected = 0
+            con1.close()
+            con2.close()
+            con3.close()
+            con4.close()
+            con5.close()
+            print "Ports Closed"
+            return
+            
+        if (update_door(con5, doorFile, door1, door2) == 1):
+            sensorTimeouts[4] = sensorTimeouts[4] + 1 
+        else:
+            sensorTimeouts[4] = 0 
+        if sensorTimeouts[4] == 10 * LOST_CONN_TIMEOUT:
+            #q.put(["{0} no data from door sensor".format(PORT)])
+            sensorTimeouts[4] = 0
+            
     # update light
     if USE_LIGHT:
         if (update_light(con2, flight, light) == 1):
@@ -206,33 +313,18 @@ def plot_update_all(con1, con2, con3, con4, con5, faccel, flight, soundFile, tem
             sensorTimeouts[1] = 0
             
         if sensorTimeouts[1] == LOST_CONN_TIMEOUT:
-            #print "Light Message"
+            #q.put(["{0} no data from light sensor".format(PORT)])
             sensorTimeouts[1] = 0
-        
-    # update ADC (noise and temp)
-    if USE_ADC:
-        if (update_sound(con3, soundFile, sound, sound_sum) == 1):
-            sensorTimeouts[2] = sensorTimeouts[2] + 1   
-        else:
-            sensorTimeouts[2] = 0
-        if sensorTimeouts[2] == LOST_CONN_TIMEOUT:
-            #print "Sound Message"
-            sensorTimeouts[2] = 0
             
-        if (update_temp(con4, tempFile, temp) == 1):
-            sensorTimeouts[3] = sensorTimeouts[3] + 1
-        else:
-            sensorTimeouts[3] = 0 
-        if sensorTimeouts[3] == LOST_CONN_TIMEOUT:
-            #print "Temperature Message"
-            sensorTimeouts[3] = 0
             
-        if (update_door(con5, doorFile, door1, door2) == 1):
-            sensorTimeouts[4] = sensorTimeouts[4] + 1 
-        else:
-            sensorTimeouts[4] = 0 
-        if sensorTimeouts[4] == LOST_CONN_TIMEOUT:
-            #print "Door Message" 
-            sensorTimeouts[4] = 0
-            """
+            #############################################################
+            #Reset if connection lost (use light sensor to measure this)#
+            #############################################################
+            connected = 0
+            con1.close()
+            con2.close()
+            con3.close()
+            con4.close()
+            con5.close()
+            print "Ports Closed"
 

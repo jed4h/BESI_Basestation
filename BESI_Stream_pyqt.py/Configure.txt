@@ -2,13 +2,12 @@
 # lines that start with a # are ignored
 # the format for parameters is: <parameter name>=<value>
 
-# Shimmer Parameters
-# Calibration parameters
+# Section 1: Calibration parameters
 # Assumes alignment matrix is:    1 0 0
-#                          		  0 1 0
-#                          		  0 0 1
+#                                 0 1 0
+#                                 0 0 1
 # offsets must be integers
-# sensitivities must be integers or floats+
+# sensitivities must be integers or floats
 xOff=2086
 yOff=2048
 zOff=2050
@@ -16,21 +15,22 @@ xSens=84.0
 ySens=83.0
 zSens=83.0
 
-# last four characters in the Shimmer Bluetooth ID
-ShimmerID_1=94:A0
-ShimmerID_2=94:86
-ShimmerID_3=84:5A
+# Section 2: Shimmer Bluetooth IDs 
+ShimmerID_1=66:86:19
+ShimmerID_2=66:94:86
+ShimmerID_3=A0:5F:09
 
-# Parameters specific to a deployment
+# Section 3: Parameters specific to a deployment
 # if PLOT=False, no plots are displayed
 PLOT=True
 numRelayStat=1   
-DeploymentID=1
-# amount of data stored in a single file in seconds and days
-fileLengthSec=60
-fileLengthDay=0
+DeploymentID=99
 
-# Parameters per relay station
+# Section 4: amount of data stored in a single file in seconds and days
+fileLengthSec=0
+fileLengthDay=1
+
+# Section 5:Parameters per relay station
 # The port number also acts as a relay station ID
 # Port numbers should be 5 apart
 # sensors marked as False will be ignored for that relay station
@@ -52,3 +52,5 @@ PORT=10009
 USE_ACCEL=False
 USE_LIGHT=False
 USE_ADC=False
+
+# Leave this comment at the end of the file

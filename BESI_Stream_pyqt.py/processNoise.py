@@ -1,4 +1,5 @@
 from datetime import datetime
+import struct
 
 # raw sound data does not require any processing
 # this function simply copies data and removes leading 0s 
@@ -29,6 +30,35 @@ def processSound(soundFile, port, DeploymentID):
             pass
         else:
             outputFile.write("{0:.2f},{1:.2f}\n".format(float(lastTime), float(noiseLevel)))
+        
+    return fname
+
+
+def processSound_byte(soundFile, port, DeploymentID):
+    startDate =  soundFile.readline()
+    empty = False
+    
+    # if the basestation gets any streaming data, the first line is a date and time
+    try:
+        dt = datetime.strptime(startDate.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
+    except:
+        print "Empty Sound File"
+        return None
+    
+    fname = "Data_Deployment_{0}/Relay_Station_{1}/Audio/Ambient Noise{2}_{3:02}-{4:02}.txt".format(DeploymentID, port, dt.date(), dt.time().hour, dt.time().minute, DeploymentID)
+    
+    outputFile = open(fname, "w")
+    
+    outputFile.write(startDate)
+    outputFile.write("Deployment ID: {0}, Relay Station ID: {1}\n".format(DeploymentID, port))
+    outputFile.write("Timestamp,Noise Level\n")
+    
+    for line in soundFile.read().split("~~"):
+        try:
+            lastTime, noiseLevel = struct.unpack("ff", line.replace("\r\n","\n"))
+            outputFile.write("{0:.2f},{1:.2f}\n".format(float(lastTime), float(noiseLevel)))
+        except:
+            pass
         
     return fname
 

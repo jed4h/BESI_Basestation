@@ -18,8 +18,12 @@ taccel_data = []
 x_data = []
 y_data = []
 z_data = []
-tlight_data = []
-light_data = []
+tlight_data1 = []
+light_data1 = []
+tlight_data2 = []
+light_data2 = []
+tlight_data3 = []
+light_data3 = []
 tsound_data = []
 sound_data = []
 tTemp_data = []
@@ -62,18 +66,52 @@ for fileName in  listdir(basePath + "Accelerometer"):
         accelLastTime = 0
         
     accelProcFile.close()
-    
+"""   
 for fileName in  listdir(basePath + "Light"):
     lightProcFile = open(basePath + "Light/" + fileName, "r")
     tlight_data_tmp, light_data_tmp = plotLight(lightProcFile)
     
     for tValue in tlight_data_tmp:
-        tlight_data.append(tValue)
+        tlight_data1.append(tValue)
     
     for lightValue in light_data_tmp:
-        light_data.append(lightValue)
+        light_data1.append(lightValue)
         
     lightProcFile.close()
+    
+deployID = input("Enter the Deployment ID number: ")
+relayID = input("Enter the Relay Station ID number: ")
+
+basePath = "Data_Deployment_" + str(deployID) + "/Relay_Station_" + str(relayID) + "/"
+for fileName in  listdir(basePath + "Light"):
+    lightProcFile = open(basePath + "Light/" + fileName, "r")
+    tlight_data_tmp, light_data_tmp = plotLight(lightProcFile)
+    
+    for tValue in tlight_data_tmp:
+        tlight_data2.append(tValue)
+    
+    for lightValue in light_data_tmp:
+        light_data2.append(lightValue)
+        
+    lightProcFile.close()   
+    
+deployID = input("Enter the Deployment ID number: ")
+relayID = input("Enter the Relay Station ID number: ")
+
+basePath = "Data_Deployment_" + str(deployID) + "/Relay_Station_" + str(relayID) + "/"
+for fileName in  listdir(basePath + "Light"):
+    lightProcFile = open(basePath + "Light/" + fileName, "r")
+    tlight_data_tmp, light_data_tmp = plotLight(lightProcFile)
+    
+    for tValue in tlight_data_tmp:
+        tlight_data3.append(tValue)
+    
+    for lightValue in light_data_tmp:
+        light_data3.append(lightValue)
+        
+    lightProcFile.close() 
+
+
 
 for fileName in  listdir(basePath + "Audio"):
     soundProcFile = open(basePath + "Audio/" + fileName, "r")
@@ -113,7 +151,7 @@ for fileName in  listdir(basePath + "Door"):
         door2_data.append(doorValue)
         
     doorProcFile.close()
-
+"""
 # if the file = None, the raw data file was empty
 
 
@@ -132,7 +170,11 @@ for fileName in  listdir(basePath + "Door"):
         
 
 app = QtGui.QApplication([])
-           
+    
+pg.setConfigOption('background', 'w')
+pg.setConfigOption('foreground', 'k')
+    
+        
 win = pg.GraphicsWindow(title="Basic plotting examples")
 win.resize(1000,600)
 win.setWindowTitle('BESI Data from Last Saved Session')
@@ -175,11 +217,25 @@ tmpDelta2 = []
 #for i in range(len(filtered3)):
 #    tmpDelta2.append(filtered4[i] - filtered3[i])
 
+tlightmin1 = tlight_data1
+for i in range(len(tlight_data1)):
+    tlightmin1[i] = tlight_data1[i]/3600.0
+
+tlightmin2 = tlight_data2
+for i in range(len(tlight_data2)):
+    tlightmin2[i] = tlight_data2[i]/3600.0
+    
+tlightmin3 = tlight_data3
+for i in range(len(tlight_data3)):
+    tlightmin3[i] = tlight_data3[i]/3600.0
+
 # Light Plot
-p3 = win.addPlot(title="Ambient Light Data")
+p3 = win.addPlot(title="Ambient Light")
 p3.setLabel('left', "Light Level", units='Lux')
-p3.setLabel('bottom', "Time", units='s')
-p3.plot(tlight_data, light_data, pen=(0,255,0), name="Filtered")
+p3.setLabel('bottom', "Time", units='hours')
+p3.plot(tlightmin1, light_data1, pen=(0,255,0), name="Filtered")
+p3.plot(tlightmin2, light_data2, pen=(255,0,0), name="Filtered")
+p3.plot(tlightmin3, light_data3, pen=(0,0,255), name="Filtered")
 
 
 
@@ -188,14 +244,14 @@ p4 = win.addPlot(title="Ambient Noise Data")
 p4.setLabel('left', "Noise Amplitude over 0.1s of data", units='V')
 p4.setLabel('bottom', "Time", units='s')
 p4.plot(tsound_data[:500000], sound_data[:500000], pen=(255,0,0), name="Filtered")
-"""
+
 p5 = win.addPlot(title="Door Sensor Data")
 p5.setLabel('left', "Raw Door Sensor", units='')
 p5.setLabel('bottom', "Time", units='s')
 p5.plot(tdoor_data ,door1_data, pen=(255,0,0), name="Filtered")
 p5.plot(tdoor_data ,door2_data, pen=(0,255,0), name="Filtered")
 
-
+"""
 ## Start Qt event loop unless running in interactive mode or using pyside.
 if __name__ == '__main__':
     import sys

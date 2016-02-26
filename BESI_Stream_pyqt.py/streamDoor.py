@@ -4,7 +4,6 @@ from parameters import *
 # check if door sensor data is ready
 # return 0 if data read, 1 otherwise 
 def update_door(connection, outFile, door1, door2):
-    # each packet is 23 bytes
     data = recv_nonblocking(connection, DOOR_PACKET_SIZE)
     if data != None:
         # if the file is empty, this is the first data received and we need to write the start time
@@ -12,11 +11,10 @@ def update_door(connection, outFile, door1, door2):
         if (outFile.tell() == 0):
             outFile.write(str(datetime.now()) + '\n')
          
-        #split_data = struct.unpack("ff", data)
-        #outFile.write("{0},{1}\n".format(split_data[0], split_data[1]))   
+        # write data as it is received, then parse for plotting
         outFile.write(data)
-        split_data = parse_door(data)
-        if split_data[0] != None:
+        split_data = parse_door_byte(data)
+        if (split_data[0] != None) and (split_data[1] != None):
             # noise data is plotted over 1000 samples = 10 seconds
             append_fixed_size(door1, split_data[0], 1000)
             append_fixed_size(door2, split_data[1], 1000)
@@ -42,3 +40,14 @@ def parse_door(raw_data):
         return_data.append(None)
         
     return return_data
+
+# parses door sensor data when it is transmitted as byte data
+def parse_door_byte(raw_data):
+    return_data = []
+    try:
+        # if noise level cannot be cast to a float, the line is not data
+        (t, s1, s2) = struct.unpack("fff", raw_data[0:12])
+    except:
+        return (None, None)
+        
+    return (s1, s2)

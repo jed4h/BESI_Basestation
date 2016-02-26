@@ -16,11 +16,17 @@ def moving_avg(data):
 # check connection for data up to BufSize in length and return it if present
 def recv_nonblocking(connection, bufSize):
     connection.settimeout(0)
+    # send 1 byte to tell relay station that connection is still valid
+    try:
+        connection.sendall("0")
+    except:
+        pass
     try:
         data = connection.recv(bufSize)
     except:
         data = None
-        
+    
+     
     return data
 
 # check connection for data up to BufSize in length and return it if present
@@ -102,7 +108,7 @@ def connectRecv(port):
     
     # Bind the socket to the port
     try:
-        name = socket.gethostbyname_ex(socket.gethostname())[-1][1]
+        name = socket.gethostbyname_ex(socket.gethostname())[-1][2]
     except:
         name = socket.gethostbyname_ex(socket.gethostname())[-1][0]
     server_address = (name, port)
@@ -124,6 +130,10 @@ def connectRecv(port):
         
 # initialize plots    
 def init_plot(relayID):
+    
+    pg.setConfigOption('background', 'w')
+    pg.setConfigOption('foreground', 'k')
+    
     curves = []
     win = pg.GraphicsWindow(title="Accelerometer data")
     win.resize(1000,600)
@@ -135,12 +145,26 @@ def init_plot(relayID):
     # graph titles
     # TODO: add axis titles
     p1 = win.addPlot(title="Accelerometer")
+    p1.setLabel('left', "Raw Accelerometer", units='')
+    p1.setLabel('bottom', "samples (at 25.6 Hz)", units='')
+    
     p2 = win.addPlot(title="Light")
+    p2.setLabel('left', "Light Level", units='Lux')
+    p2.setLabel('bottom', "samples (at 1 Hz)", units='')
+    
     win.nextRow()
     p3 = win.addPlot(title="Noise")
+    p3.setLabel('left', "Ambient Noise Level", units='')
+    p3.setLabel('bottom', "Average Amplitude of 100 samples (sampled at 10 KHz)", units='')
+    
     p4 = win.addPlot(title="Temperature")
+    p4.setLabel('left', "Temperature", units='Degrees F')
+    p4.setLabel('bottom', "samples (at 1 Hz)", units='')
+    
     win.nextRow()
     p5 = win.addPlot(title="Door Sensor")
+    p5.setLabel('left', "Motion Sensor Output", units='V')
+    p5.setLabel('bottom', "Average Amplitude of 100 samples (sampled at 1 KHz)", units='')
     
     # ranges for each graph
     p1.setXRange(0, 200)
@@ -162,7 +186,7 @@ def init_plot(relayID):
     curves.append(p1.plot(pen=(0,0,255), name="Z_Axis"))
     curves.append(p1.plot(pen=(255,255,255), name="Timestamp"))
     
-    curves.append(p2.plot(pen='y', name="Lux"))
+    curves.append(p2.plot(pen=(255,0,255), name="Lux"))
     
     curves.append(p3.plot(pen = (0, 255, 0), name="Noise"))
     curves.append(p3.plot(pen = (255, 0, 0), name="Noise_Avg"))

@@ -1,0 +1,20 @@
+0. Run combineData if split between multiple files
+
+1. Collect data
+
+2. run processTS.py
+	- set deployID, relayIDs, and startDatetime
+
+3. run plotDoorTest.py to get door sensor timestamps
+	- set startDatetime 
+	- enter deployID and relayID
+	
+4. run plotLastSession to get accelerometer activity at each door sensor timestamp
+	- select correct files using file dialog window
+	
+5. run localization.py. Output is the most likely location (room number) at times t-1,t,t+1 for every t in dsData
+	- enter information in numStates, states, relayStates, and maxTime
+	- enter door sensor transitions in dsData (occupancy is unused)
+	- enter data in expectedRSSIChange corresponding to the expected direction of the change in the RSSI for the transition
+	- enter accel file names in accelProcFile(s) accelProcFile1 should correspond to the first relay station in relayStats
+	- on line ~157 change number of rssi1, rssi2, etc. to the number of relay stations and add each to max(rssi1, rssi2, ...) (line ~161)
