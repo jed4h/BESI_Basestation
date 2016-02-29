@@ -27,7 +27,7 @@ connected = 0
 
 # receives data from the BBB using a different socket for each sensor
 # the port number for the accelerometer is given, and the other sockets are consecutive numbers following PORT
-def stream_process(commQueue = None, PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = True, ShimmerIDs = [None, None, None], PLOT=True, fileLengthSec = 600, fileLengthDay = 0, DeploymentID = 1):
+def stream_process(commQueue = None, PORT = 9999, USE_ACCEL = True, USE_LIGHT = True, USE_ADC = True, ShimmerIDs = [None, None, None], PLOT=True, fileLengthSec = 600, fileLengthDay = 0, DeploymentID = 1, networkNum = 1):
     global faccel
     global soundFile
     global tempFile
@@ -66,7 +66,7 @@ def stream_process(commQueue = None, PORT = 9999, USE_ACCEL = True, USE_LIGHT = 
     # send info to the BBB: Shimmer Bluetooth ID and what sensors to use
     # this uses the same port as the accelerometer and closes it after sending the info
     try:
-        connection = connectRecv(PORT)
+        connection = connectRecv(PORT, networkNum)
         configMsg = "{},{},{},{},{},{},".format(USE_ACCEL, USE_ADC, USE_LIGHT, ShimmerIDs[0], ShimmerIDs[1], ShimmerIDs[2])
         connection.sendall("{:03}".format(len(configMsg)) + configMsg)
         connection.close()
@@ -75,21 +75,21 @@ def stream_process(commQueue = None, PORT = 9999, USE_ACCEL = True, USE_LIGHT = 
     
     # establish socket connections for each sensor used
     if USE_ACCEL:
-        connection = connectRecv(PORT)
+        connection = connectRecv(PORT, networkNum)
         faccel = open("Data_Deployment_{}/relay_Station_{}/accel{}".format(DeploymentID, PORT, PORT), "w")
     else:
         connection = None
         
     if USE_LIGHT:
-        connection2 = connectRecv(PORT + 1)
+        connection2 = connectRecv(PORT + 1, networkNum)
         flight = open("Data_Deployment_{}/relay_Station_{}/light{}".format(DeploymentID, PORT, PORT), "w")
     else:
         connection2 = None
         
     if USE_ADC:
-        connection3 = connectRecv(PORT + 2)
-        connection4 = connectRecv(PORT + 3)
-        connection5 = connectRecv(PORT + 4)
+        connection3 = connectRecv(PORT + 2, networkNum)
+        connection4 = connectRecv(PORT + 3, networkNum)
+        connection5 = connectRecv(PORT + 4, networkNum)
         soundFile = open("Data_Deployment_{}/relay_Station_{}/sound{}".format(DeploymentID, PORT, PORT), "w")
         tempFile = open("Data_Deployment_{}/relay_Station_{}/temp{}".format(DeploymentID, PORT, PORT), "w")
         doorFile = open("Data_Deployment_{}/relay_Station_{}/door{}".format(DeploymentID, PORT, PORT), "w")
@@ -157,7 +157,7 @@ def stream_process(commQueue = None, PORT = 9999, USE_ACCEL = True, USE_LIGHT = 
         if connected == 0:
             connected = 1
             try:
-                connection = connectRecv(PORT)
+                connection = connectRecv(PORT, networkNum)
                 configMsg = "{},{},{},{},{},{},".format(USE_ACCEL, USE_ADC, USE_LIGHT, ShimmerIDs[0], ShimmerIDs[1], ShimmerIDs[2])
                 connection.sendall("{:03}".format(len(configMsg)) + configMsg)
                 connection.close()
@@ -166,21 +166,21 @@ def stream_process(commQueue = None, PORT = 9999, USE_ACCEL = True, USE_LIGHT = 
             
             # establish socket connections for each sensor used
             if USE_ACCEL:
-                connection = connectRecv(PORT)
+                connection = connectRecv(PORT, networkNum)
                 faccel = open("Data_Deployment_{}/relay_Station_{}/accel{}".format(DeploymentID, PORT, PORT), "w")
             else:
                 connection = None
                 
             if USE_LIGHT:
-                connection2 = connectRecv(PORT + 1)
+                connection2 = connectRecv(PORT + 1, networkNum)
                 flight = open("Data_Deployment_{}/relay_Station_{}/light{}".format(DeploymentID, PORT, PORT), "w")
             else:
                 connection2 = None
                 
             if USE_ADC:
-                connection3 = connectRecv(PORT + 2)
-                connection4 = connectRecv(PORT + 3)
-                connection5 = connectRecv(PORT + 4)
+                connection3 = connectRecv(PORT + 2, networkNum)
+                connection4 = connectRecv(PORT + 3, networkNum)
+                connection5 = connectRecv(PORT + 4, networkNum)
                 soundFile = open("Data_Deployment_{}/relay_Station_{}/sound{}".format(DeploymentID, PORT, PORT), "w")
                 tempFile = open("Data_Deployment_{}/relay_Station_{}/temp{}".format(DeploymentID, PORT, PORT), "w")
                 doorFile = open("Data_Deployment_{}/relay_Station_{}/door{}".format(DeploymentID, PORT, PORT), "w")

@@ -118,6 +118,13 @@ def streamParseConfig():
                     print "file length (days): ",fileLengthDay
             except:
                 print "Error processing file length"
+                
+            try:
+                if splitLine[0] == "networkNum":
+                    networkNum = int(splitLine[1])
+                    print "Network Number (1-Wi-Fi, 0-LAN): ",networkNum
+            except:
+                print "Error processing network number"
              
             
             try:   
@@ -135,4 +142,4 @@ def streamParseConfig():
             except:
                 "Error processing relay station parameters"
                 
-    return ports, useAccel, useLight, useADC, ShimmerID1, ShimmerID2, ShimmerID3, PLOT, numRelayStat, fileLengthSec, fileLengthDay, DeploymentID
+    return ports, useAccel, useLight, useADC, ShimmerID1, ShimmerID2, ShimmerID3, PLOT, numRelayStat, fileLengthSec, fileLengthDay, DeploymentID, networkNum

@@ -102,15 +102,16 @@ def append_fixed_size(array, new_data, max_size):
             
 
 # listen at the given port for a connection, and return it if one is made
-def connectRecv(port):
+def connectRecv(port, networkNum):
     # configuration parameters; purpose unknown
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
     # Bind the socket to the port
+    # if networkNum = 0, connect to relay stations on LAN, if networkNum = 0, connect on Wi-Fi
     try:
-        name = socket.gethostbyname_ex(socket.gethostname())[-1][2]
+        name = socket.gethostbyname_ex(socket.gethostname())[-1][networkNum]
     except:
-        name = socket.gethostbyname_ex(socket.gethostname())[-1][0]
+        name = socket.gethostbyname_ex(socket.gethostname())[-1][1-networkNum]
     server_address = (name, port)
     print >>sys.stderr, 'starting up on %s port %s' % server_address
     sock.bind(server_address)

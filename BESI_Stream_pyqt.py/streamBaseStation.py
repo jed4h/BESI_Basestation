@@ -56,7 +56,7 @@ if __name__ == '__main__':
     
     
     # get parameters from the config file  
-    ports, useAccel, useLight, useADC, ShimmerIDs[0], ShimmerIDs[1], ShimmerIDs[2], PLOT, numRelayStat, fileLengthSec, fileLengthDay, DeploymentID = streamParseConfig()
+    ports, useAccel, useLight, useADC, ShimmerIDs[0], ShimmerIDs[1], ShimmerIDs[2], PLOT, numRelayStat, fileLengthSec, fileLengthDay, DeploymentID, networkNum = streamParseConfig()
                
     # Create a file structure to hold data for this deployment
     data_folder = "Data_Deployment_{}/".format(DeploymentID)
@@ -90,7 +90,7 @@ if __name__ == '__main__':
     # print the host IP address so the user can enter it in the BBB application
     # If the basestation has 2 IP addresses, assume the second one is the local network that the BBB will connect to
     try:
-        name = socket.gethostbyname_ex(socket.gethostname())[-1][2]
+        name = socket.gethostbyname_ex(socket.gethostname())[-1][networkNum]
     except:
         name = socket.gethostname()
     try:
@@ -106,7 +106,7 @@ if __name__ == '__main__':
         for i in range(numRelayStat):
             # create a new process for each relay station
             # use a separate queue for communicating with each process
-            streamingProcs.append(multiprocessing.Process(target = stream.stream_process, args=(comm_queue, ports[i], useAccel[i], useLight[i], useADC[i], ShimmerIDs, PLOT, fileLengthSec, fileLengthDay, DeploymentID)))
+            streamingProcs.append(multiprocessing.Process(target = stream.stream_process, args=(comm_queue, ports[i], useAccel[i], useLight[i], useADC[i], ShimmerIDs, PLOT, fileLengthSec, fileLengthDay, DeploymentID, networkNum)))
     except:
         print "Error reading config file: incorrect parameters for relay stations"
     
