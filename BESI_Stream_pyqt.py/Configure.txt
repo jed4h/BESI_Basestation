@@ -25,6 +25,7 @@ ShimmerID_3=A0:5F:09
 PLOT=True
 numRelayStat=1   
 DeploymentID=99
+networkNum=0
 
 # Section 4: amount of data stored in a single file in seconds and days
 fileLengthSec=0
