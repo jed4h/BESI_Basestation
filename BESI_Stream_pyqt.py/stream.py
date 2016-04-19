@@ -65,39 +65,8 @@ def stream_process(commQueue = None, PORT = 9999, USE_ACCEL = True, USE_LIGHT = 
     
     # send info to the BBB: Shimmer Bluetooth ID and what sensors to use
     # this uses the same port as the accelerometer and closes it after sending the info
-    try:
-        connection = connectRecv(PORT, networkNum)
-        configMsg = "{},{},{},{},{},{},".format(USE_ACCEL, USE_ADC, USE_LIGHT, ShimmerIDs[0], ShimmerIDs[1], ShimmerIDs[2])
-        connection.sendall("{:03}".format(len(configMsg)) + configMsg)
-        connection.close()
-    except:
-        pass
     
-    # establish socket connections for each sensor used
-    if USE_ACCEL:
-        connection = connectRecv(PORT, networkNum)
-        faccel = open("Data_Deployment_{}/relay_Station_{}/accel{}".format(DeploymentID, PORT, PORT), "w")
-    else:
-        connection = None
-        
-    if USE_LIGHT:
-        connection2 = connectRecv(PORT + 1, networkNum)
-        flight = open("Data_Deployment_{}/relay_Station_{}/light{}".format(DeploymentID, PORT, PORT), "w")
-    else:
-        connection2 = None
-        
-    if USE_ADC:
-        connection3 = connectRecv(PORT + 2, networkNum)
-        connection4 = connectRecv(PORT + 3, networkNum)
-        connection5 = connectRecv(PORT + 4, networkNum)
-        soundFile = open("Data_Deployment_{}/relay_Station_{}/sound{}".format(DeploymentID, PORT, PORT), "w")
-        tempFile = open("Data_Deployment_{}/relay_Station_{}/temp{}".format(DeploymentID, PORT, PORT), "w")
-        doorFile = open("Data_Deployment_{}/relay_Station_{}/door{}".format(DeploymentID, PORT, PORT), "w")
-    else:
-        connection3 = None
-        connection4 = None
-        connection5 = None
-    
+    conectFromRS(PORT, networkNum, ShimmerIDs, DeploymentID, USE_ACCEL, USE_ADC, USE_LIGHT)
     connected = 2
     app = QtGui.QApplication([])
     if PLOT:
@@ -156,38 +125,7 @@ def stream_process(commQueue = None, PORT = 9999, USE_ACCEL = True, USE_LIGHT = 
         # if connection is lost, wait set up the port to listen for the reconnect from the relay station
         if connected == 0:
             connected = 1
-            try:
-                connection = connectRecv(PORT, networkNum)
-                configMsg = "{},{},{},{},{},{},".format(USE_ACCEL, USE_ADC, USE_LIGHT, ShimmerIDs[0], ShimmerIDs[1], ShimmerIDs[2])
-                connection.sendall("{:03}".format(len(configMsg)) + configMsg)
-                connection.close()
-            except:
-                pass
-            
-            # establish socket connections for each sensor used
-            if USE_ACCEL:
-                connection = connectRecv(PORT, networkNum)
-                faccel = open("Data_Deployment_{}/relay_Station_{}/accel{}".format(DeploymentID, PORT, PORT), "w")
-            else:
-                connection = None
-                
-            if USE_LIGHT:
-                connection2 = connectRecv(PORT + 1, networkNum)
-                flight = open("Data_Deployment_{}/relay_Station_{}/light{}".format(DeploymentID, PORT, PORT), "w")
-            else:
-                connection2 = None
-                
-            if USE_ADC:
-                connection3 = connectRecv(PORT + 2, networkNum)
-                connection4 = connectRecv(PORT + 3, networkNum)
-                connection5 = connectRecv(PORT + 4, networkNum)
-                soundFile = open("Data_Deployment_{}/relay_Station_{}/sound{}".format(DeploymentID, PORT, PORT), "w")
-                tempFile = open("Data_Deployment_{}/relay_Station_{}/temp{}".format(DeploymentID, PORT, PORT), "w")
-                doorFile = open("Data_Deployment_{}/relay_Station_{}/door{}".format(DeploymentID, PORT, PORT), "w")
-            else:
-                connection3 = None
-                connection4 = None
-                connection5 = None
+            conectFromRS(PORT, networkNum, ShimmerIDs, DeploymentID, USE_ACCEL, USE_ADC, USE_LIGHT)
             
             connected = 2
             
@@ -328,3 +266,71 @@ def plot_update_all(q, con1, con2, con3, con4, con5, faccel, flight, soundFile, 
             con5.close()
             print "Ports Closed"
 
+def conectFromRS(PORT, networkNum, ShimmerIDs, DeploymentID, USE_ACCEL, USE_ADC, USE_LIGHT):
+    global faccel
+    global soundFile
+    global tempFile
+    global doorFile
+    global flight
+    
+    global connection
+    global connection2
+    global connection3
+    global connection4
+    global connection5
+    
+    isConnected = False
+    while not isConnected:
+        try:
+            # first connection does not have a timeout
+            connection = connectRecv(PORT, networkNum, None)
+            configMsg = "{},{},{},{},{},{},".format(USE_ACCEL, USE_ADC, USE_LIGHT, ShimmerIDs[0], ShimmerIDs[1], ShimmerIDs[2])
+            connection.sendall("{:03}".format(len(configMsg)) + configMsg)
+            connection.close()
+        except:
+            print "error sending config info"
+            continue
+        
+        # establish socket connections for each sensor used
+        if USE_ACCEL:
+            connection = connectRecv(PORT, networkNum, INITIAL_CONNECT_TIMEOUT)
+            # these connections should happen quickly, so if one times out, go back to the beginning of the connection sequence
+            if connection == None:
+                print "Accel connect timeout"
+                continue
+            faccel = open("Data_Deployment_{}/relay_Station_{}/accel{}".format(DeploymentID, PORT, PORT), "w")
+        else:
+            connection = None
+            
+        if USE_LIGHT:
+            connection2 = connectRecv(PORT + 1, networkNum, INITIAL_CONNECT_TIMEOUT)
+            if connection2 == None:
+                print "Light connect timeout"
+                continue
+            flight = open("Data_Deployment_{}/relay_Station_{}/light{}".format(DeploymentID, PORT, PORT), "w")
+        else:
+            connection2 = None
+            
+        if USE_ADC:
+            connection3 = connectRecv(PORT + 2, networkNum, INITIAL_CONNECT_TIMEOUT)
+            if connection3 == None:
+                print "Sound connect timeout"
+                continue
+            connection4 = connectRecv(PORT + 3, networkNum, INITIAL_CONNECT_TIMEOUT)
+            if connection4 == None:
+                print "Temp connect timeout"
+                continue
+            connection5 = connectRecv(PORT + 4, networkNum, INITIAL_CONNECT_TIMEOUT)
+            if connection5 == None:
+                print "Door connect timeout"
+                continue
+            soundFile = open("Data_Deployment_{}/relay_Station_{}/sound{}".format(DeploymentID, PORT, PORT), "w")
+            tempFile = open("Data_Deployment_{}/relay_Station_{}/temp{}".format(DeploymentID, PORT, PORT), "w")
+            doorFile = open("Data_Deployment_{}/relay_Station_{}/door{}".format(DeploymentID, PORT, PORT), "w")
+        else:
+            connection3 = None
+            connection4 = None
+            connection5 = None
+            
+        isConnected = True
+    return connection, connection2, connection3, connection4, connection5

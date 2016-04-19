@@ -101,13 +101,13 @@ def append_fixed_size(array, new_data, max_size):
             array.pop(0)
             
 
-# listen at the given port for a connection, and return it if one is made
-def connectRecv(port, networkNum):
+# listen at the given port for a connection, and return it if one is made. If no connection is made in timeout seconds, returns none
+def connectRecv(port, networkNum, timeout):
     # configuration parameters; purpose unknown
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
     # Bind the socket to the port
-    # if networkNum = 0, connect to relay stations on LAN, if networkNum = 0, connect on Wi-Fi
+    # if networkNum = 0, connect to relay stations on LAN, if networkNum = 1, connect on Wi-Fi
     try:
         name = socket.gethostbyname_ex(socket.gethostname())[-1][networkNum]
     except:
@@ -116,12 +116,18 @@ def connectRecv(port, networkNum):
     print >>sys.stderr, 'starting up on %s port %s' % server_address
     sock.bind(server_address)
     
+    sock.settimeout(timeout)
     # Listen for incoming connections
     sock.listen(1)
     
+    
     # Wait for a connection
     print >>sys.stderr, 'waiting for a connection'
-    connection, client_address = sock.accept()
+    
+    try:
+        connection, client_address = sock.accept()
+    except:
+        return None
     
     print >>sys.stderr, 'connection from', client_address
     # make connection nonblocking

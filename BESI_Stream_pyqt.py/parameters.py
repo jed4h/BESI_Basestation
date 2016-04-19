@@ -11,6 +11,7 @@ DOOR_PACKET_SIZE = 14
 LIGHT_PACKET_SIZE = 25
 CORRUPTED_COUNT = 16                                 # corrupted transmission
 LOST_CONN_TIMEOUT = 3000                                # 1000 = ~5.5 seconds with not data
+INITIAL_CONNECT_TIMEOUT = 10                        # timeout for sockets waiting for connections from relay stations
 
 # Parameters per relay station
 # The port number also acts as a relay station ID
