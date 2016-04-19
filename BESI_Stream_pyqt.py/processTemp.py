@@ -75,3 +75,34 @@ def plotTemp(inFile):
             print "error processing float"
 
     return time_data, temp_data
+
+def plotTempStartTime(inFile):
+
+    time_data = []
+    temp_data = []
+
+    # first line is the start date and time
+    startDate = inFile.readline()
+    
+    # if the basestation gets any streaming data, the first line is a date and time
+    try:
+        dt = datetime.strptime(startDate.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
+    except:
+        print "Empty Temperature File"
+        return None
+    
+    # ignore line with metadata 
+    inFile.readline()
+    inFile.readline()
+    
+    for line in inFile:
+        splitData = line.split(",")
+        #print splitData
+        try:
+            # splitData is [<time>,<deg. C>, <deg. F>]
+            time_data.append(float(splitData[0]))
+            temp_data.append(float(splitData[2]))
+        except:
+            print "error processing float"
+
+    return time_data, temp_data, dt

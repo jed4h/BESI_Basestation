@@ -87,3 +87,33 @@ def plotNoise(inFile):
 
         
     return time_data, noise_data
+
+def plotNoiseStartTime(inFile):
+    time_data = []
+    noise_data = []
+    
+    # first line is the start date and time
+    startDate = inFile.readline()
+    
+    # if the basestation gets any streaming data, the first line is a date and time
+    try:
+        dt = datetime.strptime(startDate.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
+    except:
+        print "Empty Light File"
+        return None
+    
+    # ignore lines with metadata 
+    inFile.readline()
+    inFile.readline()
+    
+    for line in inFile:
+        splitData = line.split(",")
+        #print splitData
+        try:
+            time_data.append(float(splitData[0]))
+            noise_data.append(float(splitData[1]))
+        except:
+            print "error processing float"
+
+        
+    return time_data, noise_data, dt
