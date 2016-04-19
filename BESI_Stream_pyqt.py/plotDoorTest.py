@@ -24,7 +24,7 @@ root.withdraw()
 downsampleRate = 1
 
 accelLastTime = 0
-startDatetime = "2016-02-21_14-29.txt"
+startDatetime = "2016-03-06_01-32.txt"
 
 deployID = input("Enter the Deployment ID number: ")
 relayID = input("Enter the Relay Station ID number: ")
