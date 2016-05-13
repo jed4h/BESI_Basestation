@@ -1,5 +1,5 @@
 # functions to process raw Shimmer3 accelerometer data and produce arrays of timestamps and data to plot
-import datetime
+from datetime import datetime
 import math
 from parameters import *
 import struct
@@ -87,6 +87,48 @@ def plotAccel(inFile):
             rssi_data.append(int(splitLine[4]))
             
     return t_data, x_data, y_data, z_data, rssi_data
+
+# same as plotAccel, but alos returns start time
+def plotAccelStartTime(inFile):
+    t_data = []
+    x_data = []
+    y_data = []
+    z_data = []
+    rssi_data = []
+    
+    # first line holds the start date and time
+    startDate =  inFile.readline()
+    
+    try:
+        dt = datetime.strptime(startDate.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
+    except:
+        print "Empty Light File"
+        return None
+    
+    # ignore line with metadata 
+    inFile.readline()
+    inFile.readline()
+    
+    for line in inFile:
+        splitLine = line.split(",")
+        #print splitLine
+        try:
+            float(splitLine[0])
+            float(splitLine[1])
+            float(splitLine[2])
+            float(splitLine[3])
+            float(splitLine[4])
+            
+        except:
+            print "error processing float"
+        else:
+            t_data.append(float(splitLine[0]))
+            x_data.append(float(splitLine[1]))
+            y_data.append(float(splitLine[2]))
+            z_data.append(float(splitLine[3]))
+            rssi_data.append(int(splitLine[4]))
+            
+    return t_data, x_data, y_data, z_data, rssi_data, dt
 
 
 # processes timestamps from shimmer and writes the results to a file
@@ -271,58 +313,3 @@ def processAccel_byte(accelFile, port, DeploymentID):
             lastValidRelTime = -10000
 
 
-# processes timestamps from a file of raw accel. data
-# the raw timestamp is the number of ticks of a 32768 Hz clock that resets to 0 every 2 seconds (16 bit counter)
-# the processed timestamp is the time since the last Bluetooth connection event  
-# the raw timestamps from Shimmer are returned to use to check for corrupted packets
-##############
-##Deprecated##
-##############
-def processTimestampAccel(accelFile, port, DeploymentID):
-    t = []
-    lastTime = 0
-    # initial value needs to be > -640 so the first sample does not look like it is 2 samples after this
-    lastRelTime = -10000
-    startDate =  accelFile.readline()
-    
-    try:
-        dt = datetime.datetime.strptime(startDate.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
-    except:
-        print "Empty Accelerometer File"
-        return None
-   
-    # file name is based on start date and time of session
-    fname = "Data_Deployment_{0}/Relay_Station_{1}/Accelerometer{2}_{3}-{4:02}".format(DeploymentID, port, dt.date(), dt.time().hour, dt.time().minute, DeploymentID)
-    outputFile = open(fname, "w")
-    
-    outputFile.write(startDate)
-    outputFile.write("Timestamp,X-Axis,Y-Axis,Z-Axis\n")
-    outputFile.write("Deployment ID: {0}, Relay Station ID: {1}\n".format(DeploymentID, port))
-    
-    for line in accelFile:
-        data = line.split(",")
-        try:
-            relTime, xAxis, yAxis, zAxis, nLine = data
-        except: # line is a datetime object or an incomplete line
-            try:
-                datetime.datetime.strptime(line.rstrip(), "%Y-%m-%d %H:%M:%S.%f")
-            except:
-                pass
-            else:
-                # write datetime timestamp
-                outputFile.write(data[0])
-                #print "found a date"
-                # time is reset for each disconnect event
-                lastTime = 0 
-        else:
-            # for each valid data entry, the time stamp is incremented by the time between samples
-            # check for a single missed sample
-            if (int(relTime) == lastRelTime + 2 * TICKS_PER_SAMPLE) or (int(relTime) == lastRelTime + 2 * TICKS_PER_SAMPLE - SHIMMER_TICKS):
-                lastTime = lastTime + 2 * TICK_TIME
-            else:
-                lastTime = lastTime + TICK_TIME
-            t.append(relTime)
-            lastRelTime = int(relTime)
-            outputFile.write("{0:.2f},{1},{2},{3}\n".format(float(lastTime), xAxis, yAxis, zAxis))
-            
-    return fname, t

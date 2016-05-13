@@ -5,7 +5,7 @@
 
 from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
-from processAccel import plotAccel
+from processAccel import plotAccel, plotAccelStartTime
 from processLight import plotLightTimeStamp
 from processNoise import plotNoiseStartTime
 from processTemp import plotTempStartTime, lowPassFilter
@@ -13,6 +13,7 @@ from processDoor import plotDoorStartTime
 import Tkinter as tk
 import tkFileDialog
 from os import listdir
+
 
 def concatLight(deployID, relayID, light_data, t_data):
     basePath = "Data_Deployment_" + str(deployID) + "/Relay_Station_" + str(relayID) + "/"
@@ -26,7 +27,7 @@ def concatLight(deployID, relayID, light_data, t_data):
         
         if lastStartTime != 0:
             offset = startTime - lastStartTime
-            offset = offset.days * 86400 + offset.seconds + offset.microseconds/100000.0
+            offset = offset.days * 86400 + offset.seconds + offset.microseconds/1000000.0
                 
         if tlight_data_tmp[0] == 0:
             totalOffset = totalOffset + offset
@@ -39,6 +40,50 @@ def concatLight(deployID, relayID, light_data, t_data):
             light_data.append(lightValue)
             
         lightProcFile.close()
+ 
+def concatAccel(deployID, relayID, timeScale=3600):
+    basePath = "Data_Deployment_" + str(deployID) + "/Relay_Station_" + str(relayID) + "/"
+    lastStartTime = 0
+    totalOffset = 0
+    offset = 0
+    t_data = []
+    x_data = []
+    y_data = []
+    z_data = []
+    rssi_data = []
+    
+    for fileName in  listdir(basePath + "Accelerometer"):
+        print "Processing {}".format(fileName)
+        accelProcFile = open(basePath + "Accelerometer/" + fileName, "r")
+        taccel_data_tmp, x_data_tmp, y_data_tmp, z_data_tmp, rssi_data_tmp, startTime = plotAccelStartTime(accelProcFile)
+        
+        if lastStartTime != 0:
+            offset = startTime - lastStartTime
+            offset = offset.days * 86400 + offset.seconds + offset.microseconds/1000000.0
+        
+        # file starts at time 0        
+        if taccel_data_tmp[0] < 5:
+            totalOffset = totalOffset + offset
+            lastStartTime = startTime
+        
+        for tValue in taccel_data_tmp:
+            t_data.append((tValue + totalOffset)/timeScale)
+        
+        for val in x_data_tmp:
+            x_data.append(val)
+            
+        for val in y_data_tmp:
+            y_data.append(val)
+            
+        for val in z_data_tmp:
+            z_data.append(val)
+            
+        for val in rssi_data_tmp:
+            rssi_data.append(val)
+            
+        accelProcFile.close()
+       
+    return t_data, x_data, y_data, z_data, rssi_data
         
 def concatSound(deployID, relayID, sound_data, t_data):
     basePath = "Data_Deployment_" + str(deployID) + "/Relay_Station_" + str(relayID) + "/"
@@ -52,7 +97,7 @@ def concatSound(deployID, relayID, sound_data, t_data):
         
         if lastStartTime != 0:
             offset = startTime - lastStartTime
-            offset = offset.days * 86400 + offset.seconds + offset.microseconds/100000.0
+            offset = offset.days * 86400 + offset.seconds + offset.microseconds/1000000.0
                
         if tsound_data_tmp[0] == 0:
             totalOffset = totalOffset + offset
@@ -77,7 +122,7 @@ def concatTemp(deployID, relayID, temp_data, t_data):
         
         if lastStartTime != 0:
             offset = startTime - lastStartTime
-            offset = offset.days * 86400 + offset.seconds + offset.microseconds/100000.0
+            offset = offset.days * 86400 + offset.seconds + offset.microseconds/1000000.0
                 
         if tTemp_data_tmp[0] < 5:
             totalOffset = totalOffset + offset
@@ -91,6 +136,7 @@ def concatTemp(deployID, relayID, temp_data, t_data):
             
         tempProcFile.close()
         
+        
 def concatDoor(deployID, relayID, door_data1, door_data2, t_data):
     basePath = "Data_Deployment_" + str(deployID) + "/Relay_Station_" + str(relayID) + "/"
     lastStartTime = 0
@@ -98,23 +144,31 @@ def concatDoor(deployID, relayID, door_data1, door_data2, t_data):
     offset = 0
     
     for fileName in  listdir(basePath + "Door"):
+        print basePath + "Door/" + fileName
         doorProcFile = open(basePath + "Door/" + fileName, "r")
         tdoor_data_tmp, door_data_tmp1, door_data_tmp2, startTime = plotDoorStartTime(doorProcFile)
         
         if lastStartTime != 0:
             offset = startTime - lastStartTime
-            offset = offset.days * 86400 + offset.seconds + offset.microseconds/100000.0
+            offset = offset.days * 86400 + offset.seconds + offset.microseconds/1000000.0
+            print offset
                
         if tdoor_data_tmp[0] < 5:
             totalOffset = totalOffset + offset
             lastStartTime = startTime
         
+        """
         # average sound every second
         for i in range(len(tdoor_data_tmp)/5):
             t_data.append((tdoor_data_tmp[i*5] + totalOffset)/3600)
             door_data1.append(sum(door_data_tmp1[i:i+4])/5)
             door_data2.append(sum(door_data_tmp2[i:i+4])/5)
-        
+        """
+        # average sound every second
+        for i in range(len(tdoor_data_tmp)):
+            t_data.append((tdoor_data_tmp[i] + totalOffset))
+            door_data1.append(door_data_tmp1[i])
+            door_data2.append(door_data_tmp2[i])
         doorProcFile.close()
 
 taccel_data = []
@@ -218,14 +272,15 @@ for fileName in  listdir(basePath + "Accelerometer"):
     accelProcFile.close()
 """   
 
-"""
+
 concatLight(14, 9999, light_data1, tlight_data1)
 concatLight(14, 10004, light_data2, tlight_data2)
 concatLight(14, 10009, light_data3, tlight_data3)
 concatLight(14, 10014, light_data4, tlight_data4)
 concatLight(14, 10019, light_data5, tlight_data5)
 concatLight(14, 10024, light_data6, tlight_data6)
-"""
+
+
 concatTemp(14, 9999, temp_data1, tTemp_data1)
 concatTemp(14, 10004, temp_data2, tTemp_data2)
 concatTemp(14, 10009, temp_data3, tTemp_data3)
@@ -233,11 +288,11 @@ concatTemp(14, 10014, temp_data4, tTemp_data4)
 concatTemp(14, 10019, temp_data5, tTemp_data5)
 concatTemp(14, 10024, temp_data6, tTemp_data6)
 
-concatDoor(14, 9999, door_data11, door_data12, tdoor_data1)
-concatDoor(14, 10004, door_data21, door_data22, tdoor_data2)
-concatDoor(14, 10009, door_data31, door_data32, tdoor_data3)
-concatDoor(14, 10014, door_data41, door_data42, tdoor_data4)
-concatDoor(14, 10019, door_data51, door_data52, tdoor_data5)
+#concatDoor(16, 9999, door_data11, door_data12, tdoor_data1)
+#concatDoor(16, 10004, door_data21, door_data22, tdoor_data2)
+#concatDoor(16, 10009, door_data31, door_data32, tdoor_data3)
+#concatDoor(14, 10014, door_data41, door_data42, tdoor_data4)
+#concatDoor(14, 10019, door_data51, door_data52, tdoor_data5)
 
 
 """
@@ -331,18 +386,18 @@ p1.plot(taccel_data ,y_data, pen=(0,255,0), name="Filtered")
 p1.plot(taccel_data ,z_data, pen=(0,0,255), name="Filtered")
 """
 
-"""
+
 # Temperature Plot
-p2 = win.addPlot(title="Ambient Temperature")
-p2.setLabel('left', "Temperature", units='F')
-p2.setLabel('bottom', "Time", units='hours')
-p2.plot(tTemp_data1, lowPassFilter(temp_data1), pen=(0,255,0), name="Filtered")
-p2.plot(tTemp_data2, lowPassFilter(temp_data2), pen=(255,0,0), name="Filtered")
-p2.plot(tTemp_data3, lowPassFilter(temp_data3), pen=(0,0,255), name="Filtered")
-p2.plot(tTemp_data4, lowPassFilter(temp_data4), pen=(255,0,255), name="Filtered")
-p2.plot(tTemp_data5, lowPassFilter(temp_data5), pen=(0,255,255), name="Filtered")
-p2.plot(tTemp_data6, lowPassFilter(temp_data6), pen=(255,255,0), name="Filtered")
-"""
+#p2 = win.addPlot(title="Ambient Temperature")
+#p2.setLabel('left', "Temperature", units='F')
+#p2.setLabel('bottom', "Time", units='hours')
+#p2.plot(tTemp_data1, lowPassFilter(temp_data1), pen=(0,255,0), name="Filtered")
+#p2.plot(tTemp_data2, lowPassFilter(temp_data2), pen=(255,0,0), name="Filtered")
+#p2.plot(tTemp_data3, lowPassFilter(temp_data3), pen=(0,0,255), name="Filtered")
+#p2.plot(tTemp_data4, lowPassFilter(temp_data4), pen=(255,0,255), name="Filtered")
+#p2.plot(tTemp_data5, lowPassFilter(temp_data5), pen=(0,255,255), name="Filtered")
+#p2.plot(tTemp_data6, lowPassFilter(temp_data6), pen=(255,255,0), name="Filtered")
+
 
 win.nextRow()
 tmpDelta = []
@@ -361,18 +416,18 @@ tmpDelta2 = []
 #    tmpDelta2.append(filtered4[i] - filtered3[i])
 
 
-"""
+
 # Light Plot
 p3 = win.addPlot(title="Ambient Light")
 p3.setLabel('left', "Light Level", units='Lux')
 p3.setLabel('bottom', "Time", units='hours')
-p3.plot(tlightmin1, lowPassFilter(light_data1), pen=(0,255,0), name="Filtered")
-p3.plot(tlightmin2, lowPassFilter(light_data2), pen=(255,0,0), name="Filtered")
-p3.plot(tlightmin3, lowPassFilter(light_data3), pen=(0,0,255), name="Filtered")
-p3.plot(tlightmin4, lowPassFilter(light_data4), pen=(255,0,255), name="Filtered")
-p3.plot(tlightmin5, lowPassFilter(light_data5), pen=(0,255,255), name="Filtered")
-p3.plot(tlightmin6, lowPassFilter(light_data6), pen=(255,255,0), name="Filtered")
-"""
+#p3.plot(tlight_data1, lowPassFilter(light_data1), pen=(0,255,0), name="Filtered")
+p3.plot(tlight_data2, lowPassFilter(light_data2), pen=(255,0,0), name="Filtered")
+#p3.plot(tlight_data3, lowPassFilter(light_data3), pen=(0,0,255), name="Filtered")
+#p3.plot(tlight_data4, lowPassFilter(light_data4), pen=(255,0,255), name="Filtered")
+#p3.plot(tlight_data5, lowPassFilter(light_data5), pen=(0,255,255), name="Filtered")
+#p3.plot(tlight_data6, lowPassFilter(light_data6), pen=(255,255,0), name="Filtered")
+
 
 
 """
@@ -388,12 +443,13 @@ p4.plot(tSound_data5, sound_data5, pen=(0,255,255), name="Filtered")
 p4.plot(tSound_data6, sound_data6, pen=(255,255,0), name="Filtered")
 """
 
-
+"""
 p5 = win.addPlot(title="Door Sensor Data")
 p5.setLabel('left', "Raw Door Sensor", units='')
 p5.setLabel('bottom', "Time", units='hours')
-p5.plot(tdoor_data1 ,door_data11, pen=(255,0,0), name="Filtered")
-p5.plot(tdoor_data1 ,door_data12, pen=(0,255,0), name="Filtered")
+p5.plot(tdoor_data2 ,door_data21, pen=(255,0,0), name="Filtered")
+p5.plot(tdoor_data2 ,door_data22, pen=(0,255,0), name="Filtered")
+"""
 """
 p5.plot(tdoor_data2 ,door_data21, pen=(255,0,0), name="Filtered")
 p5.plot(tdoor_data2 ,door_data22, pen=(0,255,0), name="Filtered")

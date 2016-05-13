@@ -284,7 +284,7 @@ def conectFromRS(PORT, networkNum, ShimmerIDs, DeploymentID, USE_ACCEL, USE_ADC,
         try:
             # first connection does not have a timeout
             connection = connectRecv(PORT, networkNum, None)
-            configMsg = "{},{},{},{},{},{},".format(USE_ACCEL, USE_ADC, USE_LIGHT, ShimmerIDs[0], ShimmerIDs[1], ShimmerIDs[2])
+            configMsg = "{},{},{},{},{},{},{},".format(USE_ACCEL, USE_ADC, USE_LIGHT, ShimmerIDs[0], ShimmerIDs[1], ShimmerIDs[2], datetime.now())
             connection.sendall("{:03}".format(len(configMsg)) + configMsg)
             connection.close()
         except:

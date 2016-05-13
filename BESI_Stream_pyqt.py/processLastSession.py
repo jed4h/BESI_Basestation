@@ -4,7 +4,6 @@
 import os
 import processSession
 
-downsampleRate = 4
 
 #raw data files are named based on the socket port used to get the data from the BBB
 basePort = int(raw_input("Enter the relay station ID: "))

@@ -12,29 +12,3 @@ LIGHT_PACKET_SIZE = 25
 CORRUPTED_COUNT = 16                                 # corrupted transmission
 LOST_CONN_TIMEOUT = 3000                                # 1000 = ~5.5 seconds with not data
 INITIAL_CONNECT_TIMEOUT = 10                        # timeout for sockets waiting for connections from relay stations
-
-# Parameters per relay station
-# The port number also acts as a relay station ID
-# Port numbers should be 4 apart
-
-class calibSession:
-    def __init__(self, xOff, yOff, zOff, xSens, ySens, zSens):
-        self.xOff = xOff
-        self.yOff = yOff
-        self.zOff = zOff
-        self.xSens = xSens
-        self.ySens = ySens
-        self.zSens = zSens
-        
-
-"""
-PORT0 = 9999
-USE_ACCEL0 = True
-USE_LIGHT0 = False
-USE_ADC0 = False
-
-PORT1 = 10003
-USE_ACCEL1 = True
-USE_LIGHT1 = True
-USE_ADC1 = True
-"""

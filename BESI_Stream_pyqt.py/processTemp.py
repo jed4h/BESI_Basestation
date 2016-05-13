@@ -7,7 +7,7 @@ def lowPassFilter(unfilteredData):
         filteredData.append(unfilteredData[0])
         
         for i in range(len(unfilteredData) - 1):
-            filteredData.append(0.9 * filteredData[i] + 0.1 * unfilteredData[i + 1])
+            filteredData.append(0.93 * filteredData[i] + 0.07 * unfilteredData[i + 1])
         
     else:
         filteredData = unfilteredData

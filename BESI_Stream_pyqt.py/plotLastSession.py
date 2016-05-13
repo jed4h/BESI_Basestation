@@ -9,6 +9,8 @@ from processNoise import plotNoise
 from processTemp import plotTemp, lowPassFilter
 import Tkinter as tk
 import tkFileDialog
+from localizationUtils import teagerCompute, accelCalibMag
+import numpy as np
 
 def rssi_filter(rssi_data):
     sampleNum = 5000
@@ -57,6 +59,8 @@ def rssi_change(t_data, time, rssi_data):
 
 root = tk.Tk()
 root.withdraw()
+pg.setConfigOption('background', 'w')
+pg.setConfigOption('foreground', 'k')
 
 downsampleRate = 1
 
@@ -157,18 +161,45 @@ for event in entry_times:
     
 for event in exit_times:
     rssi_change(t_data, event-offset, rssi_data)
+    
+window_size = 256
+accelTeager = []
+
+magData = accelCalibMag(x_data, y_data, z_data)
+
+magVar = []
+
+for val in magData:
+    magVar.append(abs(val-9.8))
+
+
+
+for i in range(len(magData)/window_size + 1):
+        
+    try:
+        accelTeager += teagerCompute(magData[i*window_size:i*window_size + window_size], True)
+    except:
+        pass
+        accelTeager += teagerCompute(magData[i*window_size:-1], True)
+      
+
+calibMag = accelCalibMag(x_data, y_data, z_data)
+    
+
 
 # Accel Plot
 p1 = win.addPlot(title="Accelerometer Data")
 p1.setLabel('left', "Uncalibrated Accelerometer", units='')
 p1.setLabel('bottom', "Time", units='s')
 #p1.plot(t_data, calibrateMagnitude(t, x_data, y_data, z_data), pen=(255,0,0), name="Accel curve")
-p1.plot(t_data[0::downsampleRate], x_data[0::downsampleRate], pen=(0,255,0), name="X curve") # green
-p1.plot(t_data[0::downsampleRate], y_data[0::downsampleRate], pen=(0,0,255), name="Y curve") # Blue
+#p1.plot(t_data[0::downsampleRate], x_data[0::downsampleRate], pen=(0,255,0), name="X curve") # green
+#p1.plot(t_data[0::downsampleRate], y_data[0::downsampleRate], pen=(255,0,255), name="X curve")
+p1.plot(t_data[0::downsampleRate], magVar[0::downsampleRate], pen=(255,0,0), name="X curve")
+p1.plot(t_data[0::downsampleRate], calibMag[0::downsampleRate], pen=(0,0,255), name="Y curve") # Blue
 #p1.plot(t_data, lowPassFilter(x_data), pen=(0,255,0), name="X curve") # green
 #p1.plot(t_data, lowPassFilter(y_data), pen=(0,0,255), name="Y curve") # Blue
-p1.plot(t_data[0::downsampleRate], z_data[0::downsampleRate], pen=(255,0,255), name="Z curve") # purple
-p1.plot(t_data[0::downsampleRate], rssi_data[0::downsampleRate], pen=(255,255,255), name="RSSI curve") # purple
+#p1.plot(t_data[0::downsampleRate], z_data[0::downsampleRate], pen=(255,0,255), name="Z curve") # purple
+p1.plot(t_data[0::downsampleRate], rssi_data[0::downsampleRate], pen=(255,0,255), name="RSSI curve") # purple
 #p1.plot(t_data[0::downsampleRate], entries[0::downsampleRate], pen=(0,0,255), name="RSSI curve") # blue
 #p1.plot(t_data[0::downsampleRate], exits[0::downsampleRate], pen=(255,0,0), name="RSSI curve") # red
 
