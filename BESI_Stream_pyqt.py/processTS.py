@@ -17,7 +17,7 @@ def processAccelTime(accelFile, port, DeploymentID, startTime):
     fname = "Data_Deployment_{0}/Relay_Station_{1}/Accelerometer/Accelerometer_Synched{2}_{3:02}-{4:02}.txt".format(DeploymentID, port, startTime.date(), startTime.time().hour, startTime.time().minute, DeploymentID)
     outputFile = open(fname, "w")
     
-    outputFile.write(str(startTime) + ' ')
+    outputFile.write(str(startTime) + '\n')
     outputFile.write("Deployment ID: {0}, Relay Station ID: {1}\n".format(DeploymentID, port))
     outputFile.write("Timestamp,X-Axis,Y-Axis,Z-Axis\n")
     
