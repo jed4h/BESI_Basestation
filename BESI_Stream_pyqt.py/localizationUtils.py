@@ -8,6 +8,48 @@ def time_to_index(t_data, time):
     value = min(t_data, key=lambda x:abs(x-time))       
     return t_data.index(value)
 
+# returns the shimmer cnnect/disconnect event that is closest and before eventTime
+# BT data is a list of tuples (time, roomNum)
+def findLastBTConnect(BTdata, eventTime):
+    connectRoom = 0
+    for event in BTdata:
+        if event[0] > eventTime:
+            return connectRoom
+        else:
+            connectRoom = event[1]
+            
+    return connectRoom
+
+def findNextBTConnect(BTdata, eventTime):
+    connectRoom = 0
+    for event in BTdata:
+        if event[0] > eventTime:
+            return event[1]
+        
+    return connectRoom
+
+# arguments are a time and a list of (time, room) tuples. returns a boolean:
+# True if the time is in the list, False otherwise
+def isTimeInList(time, eventList):
+    for item in eventList:
+        if time == item[0]:
+            return True
+        
+    return False
+
+# finds the rely station that the shimmer was connected to for the majority of the time between startTime and endTime
+def findMajority(BTdata, startTime, endTime, numRoom):
+    rooms = [0]*numRoom
+    currRoom = findLastBTConnect(BTdata, startTime)
+     
+    for i in range(startTime, endTime):
+        if isTimeInList(i, BTdata):
+            print i
+            currRoom = findLastBTConnect(BTdata, i)
+        rooms[currRoom] += 1
+     
+    return rooms.index(max(rooms))  
+
 def rssi_change(t_data, time, rssi_data):
     time_range = 10
     event_index = time_to_index(t_data, time)
@@ -38,6 +80,7 @@ class DoorSensorReading:
         self.accel = accel
         self.probPWD = 0
         self.probPWDWrongDir = 0
+        self.BTConnectionRoom = 0
     
 def viterbi(maxTime, dsData, states, relay_stat_states):
     # states for rooms 0-4 (4 is outside)
@@ -666,4 +709,6 @@ def getDSEvents(deployID, relayID, startDateTime, peakThreshold, window_size, av
 
     
 #combineAccelFiles(16, 10004, "2016-04-17_11-22")
-#combineDSFiles(16, 10004, "2016-04-17_11-22")
+#combineDSFiles(14, 9999, "2016-03-23_17-08")
+x = [(0,1), (20,0), (25,2), (35, 0), (40,3), (44,0), (51,2)]
+print findMajority(x, 34, 51, 4)

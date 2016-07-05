@@ -325,7 +325,30 @@ for t in range(maxTime)[1:]:
 
 print probDSChange
 
+"""
+############################
+# Bluetooth Connection
+BT_connection = []
+infile = open("BT_localization.txt", "r")
 
+for line in infile.readlines():
+    split_line = line.split(",")
+    print line
+    BT_connection.append((int(split_line[0]), int(split_line[1])))
+infile.close()
+
+sortedDSEvents = sorted(dsData.keys())
+
+for i in range(len(sortedDSEvents) - 1):
+   
+
+for t in dsData:
+    BTroom = findLastBTConnect(BT_connection, t)
+    if BTroom ==0:
+        BTroom = findNextBTConnect(BT_connection, t)
+        
+    dsData[t].BTConnectionRoom = BTroom
+"""
 
 roomLocations = []
       
